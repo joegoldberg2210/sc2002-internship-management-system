@@ -1,0 +1,34 @@
+package entity;
+
+import java.util.Objects;
+
+/** Base class for all users. */
+public abstract class User {
+    private final String id;
+    private String name;
+    private String password; // default "password"
+
+    /** Protected: subclasses (Student/Rep/Staff) can call this, external code cannot instantiate User directly. */
+    protected User(String id, String name, String password) {
+        this.id = Objects.requireNonNull(id);
+        this.name = Objects.requireNonNull(name);
+        this.password = Objects.requireNonNull(password);
+    }
+
+    public String getId() { return id; }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = Objects.requireNonNull(name); }
+
+    /** Checks whether the given password matches the current one. */
+    public boolean verifyPassword(String pwd) { return Objects.equals(this.password, pwd); }
+
+    /**
+     * Change password if oldPwd matches.
+     * @return true if changed, false if oldPwd incorrect.
+     */
+    public boolean changePassword(String oldPwd, String newPwd) {
+        if (!verifyPassword(Objects.requireNonNull(oldPwd))) return false;
+        this.password = Objects.requireNonNull(newPwd);
+        return true;
+    }
+}
