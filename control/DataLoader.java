@@ -7,12 +7,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 import entity.*;
+import enumerations.*;
 
 public class DataLoader {
 
+    // default password for all loaded users
 	private static final String DEFAULT_PASSWORD = "password";
+
+    // folder containing the CSV files
     private static final String DEFAULT_FOLDER = "data";
 	
+    // main loader method – reads all user types from CSV files
 	public List<User> loadUsers() {
 		List<User> users = new ArrayList<>();
 
@@ -27,6 +32,7 @@ public class DataLoader {
         return users;
 	}
 
+    // reads student data from sample_student_list.csv
 	private List<Student> loadStudents(String path) throws IOException {
         List<Student> list = new ArrayList<>();
         try (BufferedReader br = new BufferedReader(new FileReader(path))) {
@@ -48,6 +54,7 @@ public class DataLoader {
         return list;
     }
 
+    // reads career center staff data from sample_staff_list.csv
     private List<CareerCenterStaff> loadStaff(String path) throws IOException {
         List<CareerCenterStaff> list = new ArrayList<>();
         try (BufferedReader br = new BufferedReader(new FileReader(path))) {
@@ -68,6 +75,7 @@ public class DataLoader {
         return list;
     }
 
+    // reads company representative data from sample_company_representative_list.csv
 	private List<CompanyRepresentative> loadCompanyReps(String path) throws IOException {
         List<CompanyRepresentative> list = new ArrayList<>();
         try (BufferedReader br = new BufferedReader(new FileReader(path))) {
