@@ -14,11 +14,11 @@ public class CompanyRepresentative extends User {
     private UserPreferences preferences;  // 0..1
 
     public CompanyRepresentative(
-            String id, String name, String password,
+            String id, String name,
             String companyName, String department, String position,
             AccountStatus status
     ) {
-        super(id, name, password);
+        super(id, name);
         this.companyName = Objects.requireNonNull(companyName);
         this.department = Objects.requireNonNull(department);
         this.position = Objects.requireNonNull(position);

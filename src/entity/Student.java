@@ -15,8 +15,8 @@ public class Student extends User {
     private Application acceptedApplication;     // 0..1
     private UserPreferences preferences;         // 0..1
 
-    public Student(String id, String name, String password, int yearOfStudy, String major) {
-        super(id, name, password);
+    public Student(String id, String name, int yearOfStudy, String major) {
+        super(id, name);
         this.yearOfStudy = yearOfStudy;
         this.major = Objects.requireNonNull(major);
     }
@@ -39,10 +39,10 @@ public class Student extends User {
     public boolean canApplyTo(InternshipOpportunity opp) {
         if (!hasCapacityForNewApplication()) return false;
         if (!opp.isOpenFor(this)) return false;
-        return (yearOfStudy <= 2) ? opp.getLevel() == InternshipLevel.BASIC : true;
+        return yearOfStudy > 2 || opp.getLevel() == InternshipLevel.BASIC;
     }
 
-    /** Students can view visible & eligible opps, or any opp they already applied to. */
+    /** Students can view visible & eligible opportunities, or any opp they already applied to. */
     public boolean canView(InternshipOpportunity opp) {
         if (opp.isVisible() && opp.isEligibleFor(this)) return true;
         for (Application a : applications) if (a.getOpportunity() == opp) return true;

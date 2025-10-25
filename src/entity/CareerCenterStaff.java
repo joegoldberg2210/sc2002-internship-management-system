@@ -5,8 +5,8 @@ public class CareerCenterStaff extends User {
     private final String staffDepartment;
     private UserPreferences preferences; // 0..1
 
-    public CareerCenterStaff(String id, String name, String password, String staffDepartment) {
-        super(id, name, password);
+    public CareerCenterStaff(String id, String name, String staffDepartment) {
+        super(id, name);
         this.staffDepartment = staffDepartment;
     }
 

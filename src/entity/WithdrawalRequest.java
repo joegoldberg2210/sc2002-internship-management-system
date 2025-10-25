@@ -1,6 +1,8 @@
 package entity;
 
 import enumerations.*;
+
+import java.time.LocalDate;
 import java.util.*;
 
 /**
@@ -14,17 +16,17 @@ public class WithdrawalRequest {
     private final String id;                          // Unique identifier for the withdrawal request
     private Application application;            // The application that the student wishes to withdraw from
     private Student requestedBy;                // The student who made the withdrawal request
-    private final Date requestedAt;                   // Date the request was created
+    private final LocalDate requestedAt;                   // Date the request was created
     private ApprovalStatus status;              // Current approval status (Pending, Approved, Rejected)
     private CareerCenterStaff reviewedBy;       // The staff member who reviewed the request
-    private Date reviewedAt;                    // Date when the request was reviewed
+    private LocalDate reviewedAt;                    // Date when the request was reviewed
 
     // === Constructor ===
     public WithdrawalRequest(String id, Application application, Student requestedBy) {
         this.id = id;
         this.application = application;
         this.requestedBy = requestedBy;
-        this.requestedAt = new Date();
+        this.requestedAt = LocalDate.now();
         this.status = ApprovalStatus.PENDING;   // Default state when created
     }
 
@@ -34,7 +36,7 @@ public class WithdrawalRequest {
     public void review(CareerCenterStaff staff, boolean approve) {
         this.reviewedBy = staff;
         this.status = approve ? ApprovalStatus.APPROVED : ApprovalStatus.REJECTED;
-        this.reviewedAt = new Date();
+        this.reviewedAt = LocalDate.now();
     }
 
     // === Utility Methods ===
@@ -55,10 +57,10 @@ public class WithdrawalRequest {
     public String getId() { return id; }
     public Application getApplication() { return application; }
     public Student getRequestedBy() { return requestedBy; }
-    public Date getRequestedAt() { return requestedAt; }
+    public LocalDate getRequestedAt() { return requestedAt; }
     public ApprovalStatus getStatus() { return status; }
     public CareerCenterStaff getReviewedBy() { return reviewedBy; }
-    public Date getReviewedAt() { return reviewedAt; }
+    public LocalDate getReviewedAt() { return reviewedAt; }
 
     // === Setters (only for reversible attributes) ===
     public void setApplication(Application application) { this.application = application; }

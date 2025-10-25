@@ -12,7 +12,6 @@ import java.util.*;
  */
 public class InternshipOpportunity {
 
-    // === Attributes (from UML) ===
     private final String id;                         // Unique ID of the internship
     private String title;                      // Internship title
     private String description;                // Brief description of the internship

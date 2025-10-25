@@ -6,13 +6,14 @@ import java.util.Objects;
 public abstract class User {
     private final String id;
     private String name;
-    private String password; // default "password"
+    private String password;
 
-    /** Protected so only subclasses can construct a User directly. */
-    protected User(String id, String name, String password) {
+
+    /** Everyone starts with default password, which is password */
+    protected User(String id, String name) {
         this.id = Objects.requireNonNull(id);
         this.name = Objects.requireNonNull(name);
-        this.password = Objects.requireNonNull(password);
+        this.password = "password";
     }
 
     public String getId() { return id; }

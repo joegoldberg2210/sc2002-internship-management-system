@@ -22,8 +22,6 @@ public class Application {
         this.appliedAt = LocalDate.now();
     }
 
-    // --- Core behaviors (per diagram) ---
-
     /** Company rep approves/rejects. Sets decision date and status. */
     public void markDecision(boolean approve) {
         this.status = approve ? ApplicationStatus.SUCCESSFUL
@@ -42,7 +40,7 @@ public class Application {
         this.accepted = true;
     }
 
-    /** Service may set to WITHDRAWN when needed (e.g., auto-withdraw others). */
+    /** Service may be set to WITHDRAWN when needed (e.g., auto-withdraw others). */
     public void markWithdrawn() {
         this.status = ApplicationStatus.WITHDRAWN;
         this.accepted = false;
