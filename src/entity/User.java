@@ -1,9 +1,11 @@
 package entity;
 
+import java.io.Serializable;
 import java.util.Objects;
 
 /** Base class for all users. */
-public abstract class User {
+public abstract class User implements Serializable {
+    private static final long serialVersionUID = 1L;
     private final String id;
     private String name;
     private String password;
@@ -16,12 +18,22 @@ public abstract class User {
         this.password = "password";
     }
 
-    public String getId() { return id; }
-    public String getName() { return name; }
-    public void setName(String name) { this.name = Objects.requireNonNull(name); }
+    public String getId() { 
+        return id; 
+    }
+
+    public String getName() { 
+        return name; 
+    }
+
+    public void setName(String name) { 
+        this.name = Objects.requireNonNull(name); 
+    }
 
     /** Returns true if supplied password matches the current password. */
-    public boolean verifyPassword(String pwd) { return Objects.equals(this.password, pwd); }
+    public boolean verifyPassword(String pwd) { 
+        return Objects.equals(this.password, pwd); 
+    }
 
     /** Change password iff oldPwd is correct. */
     public boolean changePassword(String oldPwd, String newPwd) {
