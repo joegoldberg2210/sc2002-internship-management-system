@@ -1,7 +1,5 @@
 package ui;
 
-import java.util.Scanner;
-
 public final class ConsoleUI {
     public static final int WIDTH = 50; // change once, all screens follow
 
