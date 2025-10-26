@@ -100,8 +100,8 @@ public class StudentView {
             return;
         }
 
-        boolean ok = student.changePassword(current, newPwd);
-        if (ok) {
+        boolean successful = student.changePassword(current, newPwd);
+        if (successful) {
             System.out.println("\n✓ Password changed successfully!");
             loader.saveUsers(users);
             manageAccount();
