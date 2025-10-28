@@ -8,8 +8,8 @@ SC2002 Object Oriented Design & Programming SCMC Group 2:
 |-------------------------|------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------|
 | Ng Cai Xian             | c240127@e.ntu.edu.sg         | [![github - ng-caixian](https://img.shields.io/badge/github-ng--caixian-181717?logo=github&logoColor=white)](https://github.com/ng-caixian)               |
 | Ramanathan Suntharam    | sunthara001@e.ntu.edu.sg     | [![github - joegoldberg2210](https://img.shields.io/badge/github-joegoldberg2210-181717?logo=github&logoColor=white)](https://github.com/joegoldberg2210) |
-| Ryan Yip Hui (Ye Hui)   | ryan0098@e.ntu.edu.sg        | [![github - samtan444](https://img.shields.io/badge/github-samtan444-181717?logo=github&logoColor=white)](https://github.com/samtan444)                   |
-| Tan Juin-e Samuel       | tanj0336@e.ntu.edu.sg        | [![github - ryanyipp](https://img.shields.io/badge/github-ryanyipp-181717?logo=github&logoColor=white)](https://github.com/ryanyipp)                      |  
+| Ryan Yip Hui (Ye Hui)   | ryan0098@e.ntu.edu.sg        | [![github - ryanyipp](https://img.shields.io/badge/github-ryanyipp-181717?logo=github&logoColor=white)](https://github.com/ryanyipp)                      |
+| Tan Juin-e Samuel       | tanj0336@e.ntu.edu.sg        | [![github - samtan444](https://img.shields.io/badge/github-samtan444-181717?logo=github&logoColor=white)](https://github.com/samtan444)                   |
 
 ## Login Credentials
 
