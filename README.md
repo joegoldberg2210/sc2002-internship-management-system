@@ -1,5 +1,8 @@
 # Internship Placement Management System (IPMS)
 
+[![uml class diagram](https://img.shields.io/badge/view-uml_class_diagram-blue?style=for-the-badge)](https://online.visual-paradigm.com/w/twlnwvue/diagrams/#diagram:workspace=twlnwvue&proj=1&id=3&type=ClassDiagram)
+[![report](https://img.shields.io/badge/view-report-green?style=for-the-badge)](https://docs.google.com/document/d/12FAi3fsPJf24WykyAojY5Ai6sxhWWE4XO5DyOCnt08g/edit?tab=t.0)
+
 ## Group Members
 
 SC2002 Object Oriented Design & Programming SCMC Group 2:
@@ -15,15 +18,15 @@ SC2002 Object Oriented Design & Programming SCMC Group 2:
 ```
 ./
 ├── .idea/                             
-├── data/                              
-├── src/                               
-│   ├── boundary/                                      
-│   ├── control/                              
-│   ├── entity/                          
-│   ├── enumerations/                           
-│   └── ui/                               
+├── data/                               # Data files
+├── src/                                # Source code            
+│   ├── boundary/                       # Boundary classes               
+│   ├── control/                        # Control classes      
+│   ├── entity/                         # Entity classes 
+│   ├── enumerations/                   # Enumeration classes        
+│   └── ui/                             # UI classes
 ├── .gitignore
-├── IPMSApp.java                        # Application source
+├── IPMSApp.java                        # IPMS Application
 ├── README.md
 └── sc2002-internship-management-system2.iml
 ```
