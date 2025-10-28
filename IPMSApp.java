@@ -3,51 +3,54 @@ import java.util.Scanner;
 
 import boundary.LoginView;
 import boundary.StudentView;
+import boundary.CompanyRepView;
+import boundary.CareerCenterStaffView;
 import control.AuthControl;
 import control.DataLoader;
+import control.AccountApprovalService;  // new
 import entity.Student;
+import entity.CompanyRepresentative;
+import entity.CareerCenterStaff;
 import entity.User;
 
 public class IPMSApp {
     public static void main(String[] args) {
-        // create the data loader
         DataLoader loader = new DataLoader();
-
-        // load all users from the csv files inside data folder
         List<User> users = loader.loadUsers();
 
-        // check if loading was successful
         if (users.isEmpty()) {
             System.out.println("No users loaded. Please check CSV files.");
+            return;
         } else {
-            System.out.println(users.size() + " Users loaded successfully.\n");
-
-            // print the details of each user (optional)
+            System.out.println(users.size() + " users loaded.\n");
             for (User u : users) {
-                System.out.println("ID: " + u.getId() + " | Name: " + u.getName() + " | User Type: " + u.getClass().getSimpleName());
+                System.out.printf("id: %-12s | name: %-20s | role: %-25s%n",
+                        u.getId(),
+                        u.getName(),
+                        u.getClass().getSimpleName());
             }
         }
 
         try (Scanner sc = new Scanner(System.in)) {
-
             AuthControl auth = new AuthControl(users);
+            AccountApprovalService approval = new AccountApprovalService(users, loader); // new
             LoginView login = new LoginView(sc);
 
-            User logged = login.run(auth); // blocks until successful login
+            // note: run(...) now takes approval too (for company-rep registration)
+            User logged = login.run(auth, approval);
 
-            // post-login routing by user type
             if (logged instanceof Student s) {
                 new StudentView(sc, s, users, loader).run();
             }
-            // else if (logged instanceof CompanyRepresentative cr) {
-            // }
-            // else if (logged instanceof CareerCenterStaff staff) {
-            // }
+            else if (logged instanceof CompanyRepresentative cr) {
+                new CompanyRepView(sc, cr, users, loader).run();
+            }
+            else if (logged instanceof CareerCenterStaff staff) {
+                new CareerCenterStaffView(sc, staff, users, loader, approval).run();
+            }
 
             auth.logout(logged);
-
-            // persist any changes
-            loader.saveUsers(users);
+            loader.saveUsers(users); // persist any changes (e.g., new registrations, password updates)
         }
     }
 }

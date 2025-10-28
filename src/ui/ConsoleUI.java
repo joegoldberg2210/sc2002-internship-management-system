@@ -33,7 +33,7 @@ public final class ConsoleUI {
     }
 
     public static void sectionHeader(String title) {
-        int width = 50;
+        int width = 75;
         int paddingLeft = 2;
         int innerWidth = width - 2;
 

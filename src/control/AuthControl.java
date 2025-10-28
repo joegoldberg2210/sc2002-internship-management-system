@@ -40,4 +40,8 @@ public class AuthControl {
     public User getCurrentUser() { 
 		return currentUser; 
 	}
+
+    public void addUser(User u) { 
+        userList.add(u); 
+    }
 }

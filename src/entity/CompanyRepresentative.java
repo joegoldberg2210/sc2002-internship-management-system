@@ -13,11 +13,7 @@ public class CompanyRepresentative extends User {
     private int activeListingsCount = 0;  // maintained by services (max 5 active)
     private UserPreferences preferences;  // 0..1
 
-    public CompanyRepresentative(
-            String id, String name,
-            String companyName, String department, String position,
-            AccountStatus status
-    ) {
+    public CompanyRepresentative(String id, String name, String companyName, String department, String position, AccountStatus status) {
         super(id, name);
         this.companyName = Objects.requireNonNull(companyName);
         this.department = Objects.requireNonNull(department);
@@ -25,20 +21,42 @@ public class CompanyRepresentative extends User {
         this.status = Objects.requireNonNull(status);
     }
 
-    public String getCompanyName() { return companyName; }
-    public String getDepartment()   { return department; }
-    public String getPosition()     { return position; }
+    public String getCompanyName() { 
+        return companyName; 
+    
+    }
+    public String getDepartment() { 
+        return department; 
+    }
 
-    public AccountStatus getStatus()           { return status; }
-    public void setStatus(AccountStatus status){ this.status = Objects.requireNonNull(status); }
+    public String getPosition() { 
+        return position; 
+    }
 
-    /** Business rule: at most 5 active listings at a time. */
+    public AccountStatus getStatus() { 
+        return status; 
+    }
+
+    public void setStatus(AccountStatus status) { 
+        this.status = Objects.requireNonNull(status); 
+    }
+
+    // at most 5 active listings at a time
     public boolean canCreateMore() { return activeListingsCount < 5; }
 
     /* package-private hooks for the service layer to maintain the count */
-    void _incActive() { activeListingsCount++; }
-    void _decActive() { activeListingsCount = Math.max(0, activeListingsCount - 1); }
+    void _incActive() { 
+        activeListingsCount++; 
+    }
 
-    public UserPreferences getPreferences()              { return preferences; }
-    public void setPreferences(UserPreferences prefs)    { this.preferences = prefs; }
+    void _decActive() { 
+        activeListingsCount = Math.max(0, activeListingsCount - 1); 
+    }
+
+    public UserPreferences getPreferences() { 
+        return preferences; 
+    }
+    public void setPreferences(UserPreferences prefs) { 
+        this.preferences = prefs; 
+    }
 }
