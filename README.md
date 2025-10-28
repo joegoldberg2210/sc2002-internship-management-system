@@ -11,6 +11,23 @@ SC2002 Object Oriented Design & Programming SCMC Group 2:
 | Ryan Yip Hui (Ye Hui)   | ryan0098@e.ntu.edu.sg        | [![github - ryanyipp](https://img.shields.io/badge/github-ryanyipp-181717?logo=github&logoColor=white)](https://github.com/ryanyipp)                      |
 | Tan Juin-e Samuel       | tanj0336@e.ntu.edu.sg        | [![github - samtan444](https://img.shields.io/badge/github-samtan444-181717?logo=github&logoColor=white)](https://github.com/samtan444)                   |
 
+## Directory Layout
+```
+./
+├── .idea/                             
+├── data/                              
+├── src/                               
+│   ├── boundary/                                      
+│   ├── control/                              
+│   ├── entity/                          
+│   ├── enumerations/                           
+│   └── ui/                               
+├── .gitignore
+├── IPMSApp.java                        # Application source
+├── README.md
+└── sc2002-internship-management-system2.iml
+```
+
 ## Login Credentials
 
 This section contains some login credentials for users with different roles.
