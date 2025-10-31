@@ -125,10 +125,10 @@ public class LoginView {
         approval.submitCompanyRepRegistration(rep);
 
         // make account visible to the system so staff can find/approve it
-        try {
-            auth.addUser(rep);
-        } catch (NoSuchMethodError | UnsupportedOperationException e) {
-        }
+        //try {
+          //  auth.addUser(rep);
+        //} catch (NoSuchMethodError | UnsupportedOperationException e) {
+        //}
 
         System.out.println("\n✓ Registration submitted. Status: PENDING.");
         System.out.println("  You can log in after a career center staff approves your account.\n");

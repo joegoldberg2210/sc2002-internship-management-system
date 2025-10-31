@@ -13,16 +13,36 @@ public class AuthControl {
         this.userList = userList;
     }
 
-	public User login(String id, String pwd, int role) {
-        for (User u : userList) {
-            if (!matchesRole(u, role)) continue;
-            if (u.getId().equalsIgnoreCase(id) && u.verifyPassword(pwd)) {
-                currentUser = u;
-                return u;
+    public User login(String id, String pwd, int role) {
+    for (User u : userList) {
+        if (!matchesRole(u, role)) continue;
+
+        if (u.getId().equalsIgnoreCase(id) && u.verifyPassword(pwd)) {
+
+            // 🧱 Extra status check for company representatives
+            if (u instanceof CompanyRepresentative rep) {
+                switch (rep.getStatus()) {
+                    case PENDING -> {
+                        System.out.println("\n✗ Your account is still pending approval. Please wait for staff verification.\n");
+                        return null;
+                    }
+                    case REJECTED -> {
+                        System.out.println("\n✗ Your registration was rejected. Please contact the Career Center for clarification.\n");
+                        return null;
+                    }
+                    default -> {
+                        // APPROVED -> allow login
+                    }
+                }
             }
+
+            currentUser = u;
+            return u;
         }
-        return null;
     }
+    return null;
+}
+
 
     private boolean matchesRole(User u, int role) {
         return switch (role) {

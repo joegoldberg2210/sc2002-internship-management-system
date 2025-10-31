@@ -1,11 +1,13 @@
 package control;
 
 import java.io.*;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
 import entity.*;
 import enumerations.AccountStatus;
+import enumerations.InternshipLevel;
 
 public class DataLoader {
 
@@ -116,6 +118,45 @@ public class DataLoader {
         }
         return list;
     }
+
+    //load internship opportunities
+
+    public List<InternshipOpportunity> loadOpportunities() {
+        List<InternshipOpportunity> list = new ArrayList<>();
+        String path = "data/sample_internship_opportunities.csv";
+
+        try (BufferedReader br = new BufferedReader(new FileReader(path))) {
+            br.readLine(); // skip header
+            String line;
+            while ((line = br.readLine()) != null) {
+                if (line.isBlank()) continue;
+                String[] t = line.split(",", -1);
+                if (t.length < 9) continue;
+
+                String id = t[0].trim();
+                String title = t[1].trim();
+                String description = t[2].trim();
+                InternshipLevel level = InternshipLevel.valueOf(t[3].trim().toUpperCase());
+                String major = t[4].trim();
+                LocalDate openDate = LocalDate.parse(t[5].trim());
+                LocalDate closeDate = LocalDate.parse(t[6].trim());
+                String companyName = t[7].trim();
+                int slots = Integer.parseInt(t[8].trim());
+
+                InternshipOpportunity opp = new InternshipOpportunity(
+                    id, title, description, level, major,
+                    openDate, closeDate, companyName, slots, null
+                );
+                list.add(opp);
+            }
+            System.out.println("Loaded " + list.size() + " internship opportunities.");
+        } catch (IOException e) {
+            System.out.println("⚠️ Error reading opportunities file: " + e.getMessage());
+        }
+        return list;
+    }
+
+
 
     // load career center staff from data/sample_company_representative_list.csv
     private List<CompanyRepresentative> loadCompanyReps(String path) throws IOException {

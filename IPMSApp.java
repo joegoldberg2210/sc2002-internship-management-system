@@ -8,6 +8,8 @@ import boundary.CareerCenterStaffView;
 import control.AuthControl;
 import control.DataLoader;
 import control.AccountApprovalService;  // new
+import control.OpportunityService;
+import entity.InternshipOpportunity;
 import entity.Student;
 import entity.CompanyRepresentative;
 import entity.CareerCenterStaff;
@@ -17,6 +19,9 @@ public class IPMSApp {
     public static void main(String[] args) {
         DataLoader loader = new DataLoader();
         List<User> users = loader.loadUsers();
+        List<InternshipOpportunity> opportunities = loader.loadOpportunities();
+        OpportunityService oppService = new OpportunityService(opportunities);
+
 
         if (users.isEmpty()) {
             System.out.println("No users loaded. Please check CSV files.");
@@ -43,7 +48,7 @@ public class IPMSApp {
                 new StudentView(sc, s, users, loader).run();
             }
             else if (logged instanceof CompanyRepresentative cr) {
-                new CompanyRepView(sc, cr, users, loader).run();
+                new CompanyRepView(sc, cr, users, loader, oppService).run();
             }
             else if (logged instanceof CareerCenterStaff staff) {
                 new CareerCenterStaffView(sc, staff, users, loader, approval).run();
