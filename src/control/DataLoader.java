@@ -39,7 +39,7 @@ public class DataLoader {
         ensureFolder(SERIALIZED_FOLDER);
         try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(USERS_FILE))) {
             out.writeObject(users);
-            System.out.println("saved users to " + new File(USERS_FILE).getAbsolutePath());
+            System.out.println("saved users to " + new File(USERS_FILE));
         } catch (IOException e) {
             System.err.println("error saving users: " + e.getMessage());
         }
@@ -147,7 +147,7 @@ public class DataLoader {
     public List<InternshipOpportunity> loadOpportunities() {
         List<InternshipOpportunity> saved = loadSavedOpportunities();
         if (!saved.isEmpty()) {
-            System.out.println("loaded opportunities from saved data (" + new File(OPPORTUNITIES_FILE).getAbsolutePath() + ")");
+            System.out.println("loaded opportunities from saved data (" + new File(OPPORTUNITIES_FILE) + ")");
             return saved;
         }
         System.out.println("no saved opportunity data found. returning empty list (no fallback).");
@@ -158,7 +158,7 @@ public class DataLoader {
         ensureFolder(SERIALIZED_FOLDER);
         try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(OPPORTUNITIES_FILE))) {
             out.writeObject(list);
-            System.out.println("saved opportunities to " + new File(OPPORTUNITIES_FILE).getAbsolutePath());
+            System.out.println("saved opportunities to " + new File(OPPORTUNITIES_FILE));
         } catch (IOException e) {
             System.err.println("error saving opportunities: " + e.getMessage());
         }
@@ -167,7 +167,7 @@ public class DataLoader {
     public List<Application> loadApplications() {
         List<Application> saved = loadSavedApplications();
         if (!saved.isEmpty()) {
-            System.out.println("loaded applications from saved data (" + new File(APPLICATIONS_FILE).getAbsolutePath() + ")");
+            System.out.println("loaded applications from saved data (" + new File(APPLICATIONS_FILE) + ")");
             return saved;
         }
         System.out.println("no saved application data found. returning empty list (no fallback).");
@@ -178,7 +178,7 @@ public class DataLoader {
         ensureFolder(SERIALIZED_FOLDER);
         try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(APPLICATIONS_FILE))) {
             out.writeObject(list);
-            System.out.println("saved applications to " + new File(APPLICATIONS_FILE).getAbsolutePath());
+            System.out.println("saved applications to " + new File(APPLICATIONS_FILE));
         } catch (IOException e) {
             System.err.println("error saving applications: " + e.getMessage());
         }

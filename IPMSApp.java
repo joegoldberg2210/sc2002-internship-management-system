@@ -30,7 +30,7 @@ public class IPMSApp {
 
         // pass loader so opportunityservice can persist after each change
         OpportunityService oppService = new OpportunityService(opportunities, loader);
-        ApplicationService appService = new ApplicationService(applications, opportunities, loader);
+        ApplicationService appService = new ApplicationService(applications, loader);
 
         if (users.isEmpty()) {
             System.out.println("no users loaded. please check your serialized/users.ser or csv seed.");
@@ -44,22 +44,42 @@ public class IPMSApp {
         try (Scanner sc = new Scanner(System.in)) {
             AuthControl auth = new AuthControl(users);
             AccountApprovalService approval = new AccountApprovalService(users, loader);
-            LoginView login = new LoginView(sc);
 
-            User logged = login.run(auth, approval);
+            // ─────────────────────────────────────────────────────────────
+            // outer loop: after any view returns (student/rep/staff),
+            // we come back here and show the login/create menu again.
+            // the ONLY way to exit the app is for LoginView.run(...) to return null.
+            // ─────────────────────────────────────────────────────────────
+            while (true) {
+                LoginView login = new LoginView(sc);
+                User logged = login.run(auth, approval);
 
-            if (logged instanceof Student s) {
-                new StudentView(sc, s, users, loader, oppService, appService).run();
-            } else if (logged instanceof CompanyRepresentative cr) {
-                new CompanyRepView(sc, cr, users, loader, oppService).run();
-            } else if (logged instanceof CareerCenterStaff staff) {
-                new CareerCenterStaffView(sc, staff, users, loader, approval, oppService).run();
+                // login view returns null only if user chose "exit system"
+                if (logged == null) {
+                    System.out.println("bye!");
+                    break;
+                }
+
+                // dispatch into the correct view
+                if (logged instanceof Student s) {
+                    // inside StudentView, when the user chooses "logout",
+                    // the view should just `return;` (not call run() again).
+                    new StudentView(sc, s, users, loader, oppService, appService).run();
+                } else if (logged instanceof CompanyRepresentative cr) {
+                    new CompanyRepView(sc, cr, users, loader, oppService).run();
+                } else if (logged instanceof CareerCenterStaff staff) {
+                    new CareerCenterStaffView(sc, staff, users, loader, approval, oppService).run();
+                }
+
+                // when any view returns (e.g., they set `running = false`), we land here
+                // and immediately loop back to show the login/create menu again.
+
+                // ensure session cleanup + persistence between sessions
+                auth.logout(logged);
+                loader.saveUsers(users);           // persist user edits (password, new CR registrations, approvals)
+                loader.saveOpportunities(opportunities); // persist opportunity edits/approvals
+                loader.saveApplications(applications);   // persist application submissions/decisions
             }
-
-            auth.logout(logged);
-
-            // persist user changes like password updates or new registrations
-            loader.saveUsers(users);
         }
     }
 }

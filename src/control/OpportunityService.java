@@ -39,7 +39,7 @@ public class OpportunityService {
 
         opportunities.add(opp);
         save();
-        System.out.println("✓ opportunity created and awaiting staff approval.");
+        System.out.println("✓ Internship opportunity created and awaiting Career Staff approval.");
         return true;
     }
 

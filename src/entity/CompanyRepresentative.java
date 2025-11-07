@@ -10,7 +10,7 @@ public class CompanyRepresentative extends User {
     private final String department;
     private final String position;
     private AccountStatus status;         // PENDING, APPROVED, REJECTED
-    private int activeListingsCount = 0;  // maintained by services (max 5 active)
+    private int activeListingsCount;
     private UserPreferences preferences;  // 0..1
 
     public CompanyRepresentative(String id, String name, String companyName, String department, String position, AccountStatus status) {
@@ -41,16 +41,13 @@ public class CompanyRepresentative extends User {
         this.status = Objects.requireNonNull(status); 
     }
 
-    // at most 5 active listings at a time
-    public boolean canCreateMore() { return activeListingsCount < 5; }
-
-    /* package-private hooks for the service layer to maintain the count */
-    void _incActive() { 
+    // update it when new opportunity is added or deleted
+    public void incrementListings() { 
         activeListingsCount++; 
     }
 
-    void _decActive() { 
-        activeListingsCount = Math.max(0, activeListingsCount - 1); 
+    public void decrementListings() { 
+        if (activeListingsCount > 0) activeListingsCount--; 
     }
 
     public UserPreferences getPreferences() { 

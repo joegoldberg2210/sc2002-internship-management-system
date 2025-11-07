@@ -31,7 +31,6 @@ public class LoginView {
         while (true) {
             String menu = mainMenu();
             if (menu.equals("#")) {
-                System.out.println("\n✓ logged out of system.\n");
                 return null; 
             }
 
@@ -46,7 +45,7 @@ public class LoginView {
                 // authenticate user credentials
                 User logged = auth.login(creds[0], creds[1], role);
                 if (logged != null) {
-                    System.out.println("✓ Login successful!");
+                    System.out.println(" ✓ " + roleName + " Login Successful!");
                     return logged;
                 }
                 System.out.println("✗ Invalid ID or password. Please try again.\n");
@@ -68,7 +67,7 @@ public class LoginView {
         System.out.println("What would you like to do?");
         System.out.println("(1) Login");
         System.out.println("(2) Create New Account");
-        System.out.println("(#) Exit System");
+        System.out.println("→ Type '#' here to exit program");
         System.out.println();
         System.out.print("Enter choice: ");
 
@@ -93,7 +92,7 @@ public class LoginView {
         while (true) {
             String input = sc.nextLine().trim();
             if (input.matches("[1-3]")) return Integer.parseInt(input);
-            System.out.print("Invalid choice. Enter 1-3: ");
+            System.out.print("Invalid choice. Enter choice: ");
         }
     }
 
@@ -110,7 +109,7 @@ public class LoginView {
         ConsoleUI.loginBox(role + " Login");
         System.out.print(role + " ID: ");
         String id = sc.nextLine().trim();
-        System.out.print("password: ");
+        System.out.print("Password: ");
         String pwd = sc.nextLine().trim();
         System.out.println();
         return new String[]{ id, pwd };

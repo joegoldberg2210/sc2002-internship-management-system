@@ -1,152 +1,65 @@
 package control;
 
 import java.util.*;
-import java.util.stream.Collectors;
-
-import entity.*;
-import enumerations.*;
-import java.util.UUID;
+import entity.Application;
+import entity.InternshipOpportunity;
+import entity.Student;
 
 public class ApplicationService {
+    private static final int MAX_ACTIVE_APPS = 3;
 
     private final List<Application> applications;
-    private final List<InternshipOpportunity> opportunities;
     private final DataLoader loader;
-    public static final int MAX_ACTIVE_APPS = 3;
 
-    public ApplicationService(List<Application> applications, List<InternshipOpportunity> opportunities, DataLoader loader) {
-        this.applications = Objects.requireNonNull(applications, "applications must not be null");
-        this.opportunities = Objects.requireNonNull(opportunities, "opportunities must not be null");
-        this.loader = Objects.requireNonNull(loader, "loader must not be null");
+    public ApplicationService(List<Application> applications, DataLoader loader) {
+        this.applications = Objects.requireNonNull(applications);
+        this.loader = Objects.requireNonNull(loader);
     }
 
-    // -------------------- student actions --------------------
+    /** student applies for an opportunity; returns the created application or null on failure */
+    public Application applyForOpportunity(Student student, InternshipOpportunity opp) {
+        if (student == null || opp == null) return null;
 
-    /** student applies for an opportunity */
-    public Application apply(Student student, InternshipOpportunity opp) {
-        if (student == null || opp == null) {
-            System.out.println("✗ invalid data.");
-            return null;
-        }
+        // must be visible, within window, have vacancy, and match student's major/level
+        if (!opp.isOpenFor(student)) return null;
 
-        // check if opportunity visible & open for this student
-        if (!opp.isOpenFor(student)) {
-            System.out.println("✗ this opportunity is not available for you (visibility, level, or major mismatch).");
-            return null;
-        }
+        // cap at 3 active applications
+        if (getActiveCountForStudent(student.getId()) >= MAX_ACTIVE_APPS) return null;
 
-        // limit: max 3 concurrent active applications
-        long active = getActiveCountForStudent(student.getId());
-        if (active >= MAX_ACTIVE_APPS) {
-            System.out.println("✗ you already have " + active + " active application(s). max is " + MAX_ACTIVE_APPS + ".");
-            return null;
-        }
+        // no duplicate active application for the same internship
+        if (hasActiveApplication(student, opp)) return null;
 
-        // avoid duplicate active application
-        boolean exists = applications.stream()
-                .anyMatch(a -> a.getStudent().getId().equalsIgnoreCase(student.getId())
-                        && a.getOpportunity().getId().equalsIgnoreCase(opp.getId())
-                        && a.isActive());
-        if (exists) {
-            System.out.println("✗ you already have an active application for this opportunity.");
-            return null;
-        }
-
-        // all checks passed
-        String appId = "app-" + UUID.randomUUID().toString().substring(0, 6);
-        Application app = new Application(appId, student, opp);
+        // create + persist
+        String appId = "APP-" + UUID.randomUUID().toString().substring(0, 6);
+        Application app = new Application(appId, student, opp); // defaults to PENDING
         applications.add(app);
         save();
-        System.out.println("✓ application submitted successfully: " + app.getId());
         return app;
     }
 
-    /** student withdraws application */
-    public void withdraw(Student student, Application app) {
-        if (app == null || student == null) {
-            System.out.println("✗ invalid data.");
-            return;
-        }
-        if (!app.getStudent().equals(student)) {
-            System.out.println("✗ you can only withdraw your own applications.");
-            return;
-        }
-        if (!app.isActive()) {
-            System.out.println("✗ cannot withdraw a completed application.");
-            return;
-        }
-
-        app.markWithdrawn();
-        save();
-        System.out.println("✓ application withdrawn.");
-    }
-
-    /** student accepts a successful offer */
-    public void acceptPlacement(Student student, Application app) {
-        if (app == null || student == null) {
-            System.out.println("✗ invalid data.");
-            return;
-        }
-        if (!app.getStudent().equals(student)) {
-            System.out.println("✗ you can only accept your own offer.");
-            return;
-        }
-        if (app.getStatus() != ApplicationStatus.SUCCESSFUL) {
-            System.out.println("✗ only successful offers can be accepted.");
-            return;
-        }
-
-        app.markAccepted();
-        app.getOpportunity().incrementConfirmedSlots();
-        save();
-        System.out.println("✓ placement accepted.");
-    }
-
-    // -------------------- company rep / staff actions --------------------
-
-    /** company rep decides application */
-    public void decideApplication(CompanyRepresentative rep, Application app, boolean approve) {
-        if (rep == null || app == null) {
-            System.out.println("✗ invalid data.");
-            return;
-        }
-
-        InternshipOpportunity opp = app.getOpportunity();
-        if (!rep.equals(opp.getRepInCharge())) {
-            System.out.println("✗ you can only review applications for your own opportunities.");
-            return;
-        }
-
-        app.markDecision(approve);
-        if (approve) {
-            System.out.println("✓ application approved.");
-        } else {
-            System.out.println("✓ application rejected.");
-        }
-        save();
-    }
-
-    public List<Application> getByStudent(String studentId) {
-        return applications.stream()
-                .filter(a -> a.getStudent().getId().equalsIgnoreCase(studentId))
-                .collect(Collectors.toList());
-    }
-
-    public List<Application> getByOpportunity(String oppId) {
-        return applications.stream()
-                .filter(a -> a.getOpportunity().getId().equalsIgnoreCase(oppId))
-                .collect(Collectors.toList());
-    }
-
+    /** public: count student's active (pending) applications */
     public long getActiveCountForStudent(String studentId) {
         return applications.stream()
-                .filter(a -> a.getStudent().getId().equalsIgnoreCase(studentId))
-                .filter(a -> a.isActive() && !a.isAccepted())
+                .filter(a -> a.getStudent().getId().equalsIgnoreCase(studentId) && a.isActive())
                 .count();
+    }
+
+    /** public: does student already have an active app for this exact opportunity? */
+    public boolean hasActiveApplication(Student student, InternshipOpportunity opp) {
+        return applications.stream().anyMatch(a ->
+                a.getStudent().getId().equalsIgnoreCase(student.getId())
+                        && a.getOpportunity().getId().equalsIgnoreCase(opp.getId())
+                        && a.isActive());
+    }
+
+    /** public: fetch all applications for this student */
+    public List<Application> getApplicationsForStudent(Student student) {
+        return applications.stream()
+                .filter(a -> a.getStudent().getId().equalsIgnoreCase(student.getId()))
+                .toList();
     }
 
     private void save() {
         loader.saveApplications(applications);
-        loader.saveOpportunities(opportunities);
     }
 }
