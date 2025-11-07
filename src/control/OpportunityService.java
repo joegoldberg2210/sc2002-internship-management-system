@@ -127,24 +127,20 @@ public class OpportunityService {
 
     public List<InternshipOpportunity> getPending() {
         return opportunities.stream()
-                .filter(o -> o.getStatus() == OpportunityStatus.PENDING)
-                .collect(Collectors.toList());
+            .filter(o -> o.getStatus() == OpportunityStatus.PENDING)
+            .collect(Collectors.toList());
     }
 
     public List<InternshipOpportunity> getApproved() {
         return opportunities.stream()
-                .filter(o -> o.getStatus() == OpportunityStatus.APPROVED)
-                .collect(Collectors.toList());
+            .filter(o -> o.getStatus() == OpportunityStatus.APPROVED)
+            .collect(Collectors.toList());
     }
 
     // -------------------- staff actions --------------------
 
     /** approve an opportunity */
     public void approveOpportunity(CareerCenterStaff staff, InternshipOpportunity opp) {
-        if (staff == null || opp == null) {
-            System.out.println("✗ invalid data.");
-            return;
-        }
         opp.setStatus(OpportunityStatus.APPROVED);
         opp.setVisibility(true);
         save();
@@ -153,10 +149,6 @@ public class OpportunityService {
 
     /** reject an opportunity (no reason) */
     public void rejectOpportunity(CareerCenterStaff staff, InternshipOpportunity opp) {
-        if (staff == null || opp == null) {
-            System.out.println("✗ invalid data.");
-            return;
-        }
         opp.setStatus(OpportunityStatus.REJECTED);
         opp.setVisibility(false);
         save();

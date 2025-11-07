@@ -8,6 +8,7 @@ import java.util.List;
 import entity.*;
 import enumerations.AccountStatus;
 import enumerations.InternshipLevel;
+import enumerations.Major;
 
 public class DataLoader {
 
@@ -17,6 +18,7 @@ public class DataLoader {
 
     private static final String USERS_FILE         = SERIALIZED_FOLDER + "/users.ser";
     private static final String OPPORTUNITIES_FILE = SERIALIZED_FOLDER + "/opportunities.ser";
+    private static final String APPLICATIONS_FILE = SERIALIZED_FOLDER + "/applications.ser";
 
     /* load saved users if available; else load from csv and save */
     public List<User> loadUsers() {
@@ -82,8 +84,10 @@ public class DataLoader {
                 } catch (NumberFormatException ex) {
                     continue;
                 }
+                Major majorEnum = parseMajor(major);
 
-                list.add(new Student(id, name, year, major));
+                list.add(new Student(id, name, year, majorEnum));
+
             }
         }
         return list;
@@ -160,7 +164,39 @@ public class DataLoader {
         }
     }
 
+    public List<Application> loadApplications() {
+        List<Application> saved = loadSavedApplications();
+        if (!saved.isEmpty()) {
+            System.out.println("loaded applications from saved data (" + new File(APPLICATIONS_FILE).getAbsolutePath() + ")");
+            return saved;
+        }
+        System.out.println("no saved application data found. returning empty list (no fallback).");
+        return new ArrayList<>();
+    }
+
+    public void saveApplications(List<Application> list) {
+        ensureFolder(SERIALIZED_FOLDER);
+        try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(APPLICATIONS_FILE))) {
+            out.writeObject(list);
+            System.out.println("saved applications to " + new File(APPLICATIONS_FILE).getAbsolutePath());
+        } catch (IOException e) {
+            System.err.println("error saving applications: " + e.getMessage());
+        }
+    }
+
     /* ===== private helpers ===== */
+
+    private Major parseMajor(String s) {
+        s = s.trim().toUpperCase();
+
+        switch (s) {
+            case "COMPUTER SCIENCE", "CSC" -> { return Major.CSC; }
+            case "DATA SCIENCE & AI", "DSAI" -> { return Major.DSAI; }
+            case "COMPUTER ENGINEERING", "CEG" -> { return Major.CEG; }
+            case "INFORMATION ENGINEERING & MEDIA", "IEM" -> { return Major.IEM; }
+             default -> throw new IllegalArgumentException("invalid major: " + s);
+        }
+    }
 
     @SuppressWarnings("unchecked")
     private List<User> loadSavedUsers() {
@@ -188,6 +224,21 @@ public class DataLoader {
             }
         } catch (IOException | ClassNotFoundException e) {
             System.err.println("error loading saved opportunities: " + e.getMessage());
+        }
+        return new ArrayList<>();
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<Application> loadSavedApplications() {
+        File f = new File(APPLICATIONS_FILE);
+        if (!f.exists() || f.length() == 0) return new ArrayList<>();
+        try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(f))) {
+            Object obj = in.readObject();
+            if (obj instanceof List<?>) {
+                return (List<Application>) obj;
+            }
+        } catch (IOException | ClassNotFoundException e) {
+            System.err.println("error loading saved applications: " + e.getMessage());
         }
         return new ArrayList<>();
     }

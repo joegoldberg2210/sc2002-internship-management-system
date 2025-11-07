@@ -49,23 +49,21 @@ public class InternshipOpportunity implements Serializable {
 
     // === Operational Methods ===
 
-    /**
-     * Checks whether this internship is open for a given student at a particular date.
-     */
-    public boolean isOpenFor(Student student) {
-        LocalDate today = LocalDate.now();
-        return visibility
-                && status == OpportunityStatus.APPROVED
-                && (!today.isBefore(openDate))      // today >= openDate
-                && (!today.isAfter(closeDate))      // today <= closeDate
-                && hasVacancy()
-                && isEligibleFor(student);
+    public boolean isOpenFor(Student s) {
+        if (s == null) return false;
+        if (status != OpportunityStatus.APPROVED) return false;   // must be approved
+        if (!visibility) return false;                            // must be visible
+        var today = java.time.LocalDate.now();
+        if (today.isBefore(openDate) || today.isAfter(closeDate)) return false; // in window
+        if (!hasVacancy()) return false;                          // slots left
+        return isEligibleFor(s);                                  // major + level rules
     }
 
-    /* Eligibility: major must match: y1-2 only BASIC; y3+ any level. */
     public boolean isEligibleFor(Student s) {
-        if (s == null) return false;
-        if (!Objects.equals(preferredMajor, s.getMajor())) return false;
+        // assuming preferredMajor is an enum Major
+        if (s.getMajor() != preferredMajor) return false;
+
+        // year rule: y1-2 basic only; y3+ any level
         if (s.getYearOfStudy() <= 2) return level == InternshipLevel.BASIC;
         return true;
     }

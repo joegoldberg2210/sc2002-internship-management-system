@@ -2,27 +2,27 @@ package entity;
 
 import enumerations.ApplicationStatus;
 import enumerations.InternshipLevel;
+import enumerations.Major;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 /** Student user with applications and saved preferences. */
 public class Student extends User {
     private final int yearOfStudy;               // 1..4
-    private final String major;                  // CSC, EEE, ...
+    private Major major;                  // CSC, EEE, ...
     private final List<Application> applications = new ArrayList<>();
     private Application acceptedApplication;     // 0..1
     private UserPreferences preferences;         // 0..1
 
-    public Student(String id, String name, int yearOfStudy, String major) {
+    public Student(String id, String name, int yearOfStudy, Major major) {
         super(id, name);
         this.yearOfStudy = yearOfStudy;
-        this.major = Objects.requireNonNull(major);
+        this.major = major;
     }
 
     public int getYearOfStudy() { return yearOfStudy; }
-    public String getMajor()    { return major; }
+    public Major getMajor()    { return major; }
     public List<Application> getApplications() { return applications; }
     public Application getAcceptedApplication() { return acceptedApplication; }
     void _setAcceptedApplication(Application app) { this.acceptedApplication = app; }

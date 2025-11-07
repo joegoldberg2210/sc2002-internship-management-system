@@ -6,12 +6,11 @@ import java.util.Scanner;
 
 import control.AccountApprovalService;
 import control.DataLoader;
+import control.OpportunityService;
 import entity.CareerCenterStaff;
 import entity.CompanyRepresentative;
 import entity.InternshipOpportunity;
 import entity.User;
-import enumerations.AccountStatus;
-import enumerations.OpportunityStatus;
 import ui.ConsoleUI;
 
 public class CareerCenterStaffView {
@@ -20,13 +19,15 @@ public class CareerCenterStaffView {
     private final List<User> users;
     private final DataLoader loader;
     private final AccountApprovalService approval;
+    private final OpportunityService oppService;
 
-    public CareerCenterStaffView(Scanner sc, CareerCenterStaff staff, List<User> users, DataLoader loader, AccountApprovalService approval) {
+    public CareerCenterStaffView(Scanner sc, CareerCenterStaff staff, List<User> users, DataLoader loader, AccountApprovalService approval, OpportunityService oppService) {
         this.sc = sc;
         this.staff = staff;
         this.users = users;
         this.loader = loader;
         this.approval = approval;
+        this.oppService = oppService;
     }
 
     public void run() {
@@ -167,12 +168,7 @@ public class CareerCenterStaffView {
     private void reviewInternshipOpportunities() {
         ConsoleUI.sectionHeader("Career Center Staff View > Review Pending Internship Opportunities");
 
-        List<InternshipOpportunity> all = loader.loadOpportunities();
-        List<InternshipOpportunity> pending = new ArrayList<>();
-        for (InternshipOpportunity o : all) {
-            if (o.getStatus() == OpportunityStatus.PENDING) pending.add(o);
-        }
-
+        List<InternshipOpportunity> pending = oppService.getPending();
         if (pending.isEmpty()) {
             System.out.println("no pending internship opportunity.\n");
             return;
@@ -181,7 +177,7 @@ public class CareerCenterStaffView {
         System.out.println("pending opportunities:");
         for (int i = 0; i < pending.size(); i++) {
             InternshipOpportunity o = pending.get(i);
-            System.out.printf("(%d) %s [%s] — %s, level=%s, slots %d/%d%n",
+            System.out.printf("(%d) %s [%s] — major=%s, level=%s, slots %d/%d%n",
                     i + 1, o.getTitle(), o.getCompanyName(), o.getPreferredMajor(),
                     o.getLevel(), o.getConfirmedSlots(), o.getSlots());
         }
@@ -212,16 +208,11 @@ public class CareerCenterStaffView {
 
         switch (c) {
             case "1" -> {
-                sel.setStatus(OpportunityStatus.APPROVED);
-                sel.setVisibility(true);
-                loader.saveOpportunities(all);
+                oppService.approveOpportunity(staff, sel); // persists inside service
                 System.out.println("✓ approved. opportunity is now visible to eligible students.\n");
             }
             case "2" -> {
-                // no rejection reason
-                sel.setStatus(OpportunityStatus.REJECTED);
-                sel.setVisibility(false);
-                loader.saveOpportunities(all);
+                oppService.rejectOpportunity(staff, sel);  // persists inside service
                 System.out.println("✓ rejected.\n");
             }
             case "0" -> { /* back */ }

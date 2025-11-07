@@ -8,12 +8,14 @@ import boundary.CareerCenterStaffView;
 import control.AuthControl;
 import control.DataLoader;
 import control.AccountApprovalService;
+import control.ApplicationService;
 import control.OpportunityService;
 import entity.InternshipOpportunity;
 import entity.Student;
 import entity.CompanyRepresentative;
 import entity.CareerCenterStaff;
 import entity.User;
+import entity.Application;
 
 public class IPMSApp {
     public static void main(String[] args) {
@@ -24,9 +26,11 @@ public class IPMSApp {
 
         // load opportunities (no csv fallback; empty list if none)
         List<InternshipOpportunity> opportunities = loader.loadOpportunities();
+        List<Application> applications = loader.loadApplications();
 
         // pass loader so opportunityservice can persist after each change
         OpportunityService oppService = new OpportunityService(opportunities, loader);
+        ApplicationService appService = new ApplicationService(applications, opportunities, loader);
 
         if (users.isEmpty()) {
             System.out.println("no users loaded. please check your serialized/users.ser or csv seed.");
@@ -45,11 +49,11 @@ public class IPMSApp {
             User logged = login.run(auth, approval);
 
             if (logged instanceof Student s) {
-                new StudentView(sc, s, users, loader).run();
+                new StudentView(sc, s, users, loader, oppService, appService).run();
             } else if (logged instanceof CompanyRepresentative cr) {
                 new CompanyRepView(sc, cr, users, loader, oppService).run();
             } else if (logged instanceof CareerCenterStaff staff) {
-                new CareerCenterStaffView(sc, staff, users, loader, approval).run();
+                new CareerCenterStaffView(sc, staff, users, loader, approval, oppService).run();
             }
 
             auth.logout(logged);

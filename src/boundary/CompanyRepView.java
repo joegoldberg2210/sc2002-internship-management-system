@@ -300,7 +300,7 @@ public class CompanyRepView {
     }
 
     private void viewMyOpportunities() {
-        ConsoleUI.sectionHeader("My Internship Opportunities");
+        ConsoleUI.sectionHeader("Company Representative View > View My Opportunities");
         List<InternshipOpportunity> myOpps = opportunityService.getByCompany(rep.getCompanyName());
 
         if (myOpps.isEmpty()) {
@@ -308,10 +308,22 @@ public class CompanyRepView {
             return;
         }
 
+        System.out.println("You have " + myOpps.size() + " internship opportunity(ies):\n");
+
         for (InternshipOpportunity opp : myOpps) {
-            System.out.printf("ID: %-6s | Title: %-20s | Major: %-12s | Level: %-12s | Slots: %-3d | Visible: %s%n",
-                    opp.getId(), opp.getTitle(), opp.getPreferredMajor(), opp.getLevel(), opp.getSlots(),
-                    opp.isVisible() ? "Yes" : "No");
+            System.out.println("------------------------------------------------------------");
+            System.out.println("ID             : " + opp.getId());
+            System.out.println("Title          : " + opp.getTitle());
+            System.out.println("Description    : " + opp.getDescription());
+            System.out.println("Major          : " + opp.getPreferredMajor());
+            System.out.println("Level          : " + opp.getLevel());
+            System.out.println("Company        : " + opp.getCompanyName());
+            System.out.println("Open Date      : " + opp.getOpenDate());
+            System.out.println("Close Date     : " + opp.getCloseDate());
+            System.out.println("Slots Vacancy  : " + opp.getConfirmedSlots() + "/" + opp.getSlots());
+            System.out.println("Status         : " + opp.getStatus());
+            System.out.println("Visibility     : " + (opp.isVisible() ? "Visible to Students" : "Hidden from Students"));
+            System.out.println("------------------------------------------------------------\n");
         }
         System.out.println();
     }

@@ -2,6 +2,9 @@ package enumerations;
 
 public enum Major {
     CSC,
+    DSAI,
     EEE,
-    MAE
+    MAE,
+    CEG,
+    IEM
 }
