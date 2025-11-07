@@ -19,6 +19,7 @@ SC2002 Object Oriented Design & Programming SCMC Group 2:
 ./
 ├── .idea/                             
 ├── data/                               # Data files
+├── serialized/                         # Serialized data
 ├── src/                                # Source code            
 │   ├── boundary/                       # Boundary classes               
 │   ├── control/                        # Control classes      
