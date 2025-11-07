@@ -100,8 +100,8 @@ public class LoginView {
     private void registerCompanyRep(AccountApprovalService approval, AuthControl auth) {
         ConsoleUI.sectionHeader("Company Representative Registration");
 
-        System.out.print("Company Representative ID: ");
-        String id = sc.nextLine().trim();
+        // ensure uniqueness against existing users before proceeding
+        String id = promptUniqueCompanyRepId(auth);
 
         System.out.print("Full Name: ");
         String name = sc.nextLine().trim();
@@ -124,13 +124,29 @@ public class LoginView {
         // submit for approval (status -> pending)
         approval.submitCompanyRepRegistration(rep);
 
-        // make account visible to the system so staff can find/approve it
-        //try {
-          //  auth.addUser(rep);
-        //} catch (NoSuchMethodError | UnsupportedOperationException e) {
-        //}
-
         System.out.println("\n✓ Registration submitted. Status: PENDING.");
         System.out.println("  You can log in after a career center staff approves your account.\n");
+    }
+
+    /** keep asking until the id looks like an email and is not already used by any existing user */
+    private String promptUniqueCompanyRepId(AuthControl auth) {
+        while (true) {
+            System.out.print("Company Representative ID (email): ");
+            String id = sc.nextLine().trim();
+
+            if (!isLikelyEmail(id)) {
+                System.out.println("✗ please enter a valid email address.");
+                continue;
+            }
+            if (auth.userIdTaken(id)) {
+                System.out.println("✗ this id is already registered by an existing user. please use another.");
+                continue;
+            }
+            return id;
+        }
+    }
+
+    private boolean isLikelyEmail(String s) {
+        return s.matches("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$");
     }
 }

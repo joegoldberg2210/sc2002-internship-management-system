@@ -11,54 +11,64 @@ import enumerations.InternshipLevel;
 
 public class DataLoader {
 
-    private static final String DEFAULT_FOLDER = "data";
-    private static final String SAVE_FILE      = DEFAULT_FOLDER + "/users.ser";
+    // keep csv inputs and serialized outputs in different folders
+    private static final String DATA_FOLDER       = "data";
+    private static final String SERIALIZED_FOLDER = "serialized";
 
-    /* Load saved users if available; else load from csv and save */
+    private static final String USERS_FILE         = SERIALIZED_FOLDER + "/users.ser";
+    private static final String OPPORTUNITIES_FILE = SERIALIZED_FOLDER + "/opportunities.ser";
+
+    /* load saved users if available; else load from csv and save */
     public List<User> loadUsers() {
-        // 1) try saved data
         List<User> saved = loadSavedUsers();
         if (!saved.isEmpty()) {
-            System.out.println("loaded users from saved data (" + SAVE_FILE + ")");
+            System.out.println("loaded users from saved data (" + USERS_FILE + ")");
             return saved;
         }
 
-        // 2) fallback to csv, then save for next run
-        System.out.println("no saved data found. loading from csv...");
-        List<User> users = loadUsers(DEFAULT_FOLDER);
+        System.out.println("no saved user data found. loading from csv...");
+        List<User> users = loadUsersFromCsv(DATA_FOLDER);
         saveUsers(users);
         return users;
     }
 
-    /* Load from CSV files */
-    public List<User> loadUsers(String folder) {
-        List<User> users = new ArrayList<>();
-        try {
-            users.addAll(loadStudents(folder + "/sample_student_list.csv"));
-            users.addAll(loadStaff(folder + "/sample_staff_list.csv"));
-            users.addAll(loadCompanyReps(folder + "/sample_company_representative_list.csv"));
-        } catch (IOException e) {
-            System.err.println("data load error: " + e.getMessage());
-        }
-        return users;
-    }
-
+    /* write all users (students, staff, reps — including pending/approved/rejected) */
     public void saveUsers(List<User> users) {
-        // ensure folder exists
-        File dir = new File(DEFAULT_FOLDER);
-        if (!dir.exists()) dir.mkdirs();
-
-        try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(SAVE_FILE))) {
+        ensureFolder(SERIALIZED_FOLDER);
+        try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(USERS_FILE))) {
             out.writeObject(users);
-            System.out.println("saved users to " + SAVE_FILE);
+            System.out.println("saved users to " + new File(USERS_FILE).getAbsolutePath());
         } catch (IOException e) {
             System.err.println("error saving users: " + e.getMessage());
         }
     }
 
+    /* opportunities: prefer .ser; if missing, fall back to csv, then save */
+    public List<InternshipOpportunity> loadOpportunities() {
+        List<InternshipOpportunity> saved = loadSavedOpportunities();
+        if (!saved.isEmpty()) return saved;
+
+        System.out.println("no saved opportunity data found. loading from csv...");
+        List<InternshipOpportunity> list = loadOpportunitiesFromCsv(DATA_FOLDER + "/sample_internship_opportunities.csv");
+        saveOpportunities(list);
+        return list;
+    }
+
+    public void saveOpportunities(List<InternshipOpportunity> list) {
+        ensureFolder(SERIALIZED_FOLDER);
+        try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(OPPORTUNITIES_FILE))) {
+            out.writeObject(list);
+            System.out.println("saved opportunities to " + new File(OPPORTUNITIES_FILE).getAbsolutePath());
+        } catch (IOException e) {
+            System.err.println("error saving opportunities: " + e.getMessage());
+        }
+    }
+
+    /* ===== private helpers ===== */
+
     @SuppressWarnings("unchecked")
     private List<User> loadSavedUsers() {
-        File f = new File(SAVE_FILE);
+        File f = new File(USERS_FILE);
         if (!f.exists() || f.length() == 0) return new ArrayList<>();
         try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(f))) {
             Object obj = in.readObject();
@@ -71,7 +81,75 @@ public class DataLoader {
         return new ArrayList<>();
     }
 
-    // load students from data/sample_student_list.csv
+    @SuppressWarnings("unchecked")
+    private List<InternshipOpportunity> loadSavedOpportunities() {
+        File f = new File(OPPORTUNITIES_FILE);
+        if (!f.exists() || f.length() == 0) return new ArrayList<>();
+        try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(f))) {
+            Object obj = in.readObject();
+            if (obj instanceof List<?>) {
+                System.out.println("loaded opportunities from " + f.getAbsolutePath());
+                return (List<InternshipOpportunity>) obj;
+            }
+        } catch (IOException | ClassNotFoundException e) {
+            System.err.println("error loading saved opportunities: " + e.getMessage());
+        }
+        return new ArrayList<>();
+    }
+
+    private void ensureFolder(String folderPath) {
+        File dir = new File(folderPath);
+        if (!dir.exists()) dir.mkdirs();
+    }
+
+    /* build users from csv files (students, staff, company reps) */
+    private List<User> loadUsersFromCsv(String folder) {
+        List<User> users = new ArrayList<>();
+        try {
+            users.addAll(loadStudents(folder + "/sample_student_list.csv"));
+            users.addAll(loadStaff(folder + "/sample_staff_list.csv"));
+            users.addAll(loadCompanyReps(folder + "/sample_company_representative_list.csv"));
+        } catch (IOException e) {
+            System.err.println("data load error: " + e.getMessage());
+        }
+        return users;
+    }
+
+    // load internship opportunities from csv (default status handled in entity constructor)
+    private List<InternshipOpportunity> loadOpportunitiesFromCsv(String path) {
+        List<InternshipOpportunity> list = new ArrayList<>();
+        try (BufferedReader br = new BufferedReader(new FileReader(path))) {
+            br.readLine(); // skip header
+            String line;
+            while ((line = br.readLine()) != null) {
+                if (line.isBlank()) continue;
+                String[] t = line.split(",", -1);
+                if (t.length < 9) continue;
+
+                String id          = t[0].trim();
+                String title       = t[1].trim();
+                String description = t[2].trim();
+                InternshipLevel level = InternshipLevel.valueOf(t[3].trim().toUpperCase());
+                String major      = t[4].trim();
+                LocalDate open    = LocalDate.parse(t[5].trim());
+                LocalDate close   = LocalDate.parse(t[6].trim());
+                String company    = t[7].trim();
+                int slots         = Integer.parseInt(t[8].trim());
+
+                InternshipOpportunity opp = new InternshipOpportunity(
+                        id, title, description, level, major, open, close, company, slots, null
+                );
+                // status defaults to PENDING in your constructor; visibility=false
+                list.add(opp);
+            }
+            System.out.println("loaded " + list.size() + " internship opportunities from csv.");
+        } catch (IOException e) {
+            System.out.println("⚠️ error reading opportunities file: " + e.getMessage());
+        }
+        return list;
+    }
+
+    /* csv: students */
     private List<Student> loadStudents(String path) throws IOException {
         List<Student> list = new ArrayList<>();
         try (BufferedReader br = new BufferedReader(new FileReader(path))) {
@@ -85,6 +163,7 @@ public class DataLoader {
                 String id    = t[0].trim();
                 String name  = t[1].trim();
                 String major = t[2].trim();
+
                 int year;
                 try {
                     year = Integer.parseInt(t[3].trim());
@@ -92,13 +171,13 @@ public class DataLoader {
                     continue;
                 }
 
-                list.add(new Student(id, name, year, major)); // default password from User
+                list.add(new Student(id, name, year, major));
             }
         }
         return list;
     }
 
-    // load career center staff from data/sample_staff_list.csv
+    /* csv: staff */
     private List<CareerCenterStaff> loadStaff(String path) throws IOException {
         List<CareerCenterStaff> list = new ArrayList<>();
         try (BufferedReader br = new BufferedReader(new FileReader(path))) {
@@ -119,46 +198,7 @@ public class DataLoader {
         return list;
     }
 
-    //load internship opportunities
-
-    public List<InternshipOpportunity> loadOpportunities() {
-        List<InternshipOpportunity> list = new ArrayList<>();
-        String path = "data/sample_internship_opportunities.csv";
-
-        try (BufferedReader br = new BufferedReader(new FileReader(path))) {
-            br.readLine(); // skip header
-            String line;
-            while ((line = br.readLine()) != null) {
-                if (line.isBlank()) continue;
-                String[] t = line.split(",", -1);
-                if (t.length < 9) continue;
-
-                String id = t[0].trim();
-                String title = t[1].trim();
-                String description = t[2].trim();
-                InternshipLevel level = InternshipLevel.valueOf(t[3].trim().toUpperCase());
-                String major = t[4].trim();
-                LocalDate openDate = LocalDate.parse(t[5].trim());
-                LocalDate closeDate = LocalDate.parse(t[6].trim());
-                String companyName = t[7].trim();
-                int slots = Integer.parseInt(t[8].trim());
-
-                InternshipOpportunity opp = new InternshipOpportunity(
-                    id, title, description, level, major,
-                    openDate, closeDate, companyName, slots, null
-                );
-                list.add(opp);
-            }
-            System.out.println("Loaded " + list.size() + " internship opportunities.");
-        } catch (IOException e) {
-            System.out.println("⚠️ Error reading opportunities file: " + e.getMessage());
-        }
-        return list;
-    }
-
-
-
-    // load career center staff from data/sample_company_representative_list.csv
+    /* csv: company representatives (status column optional; defaults to PENDING) */
     private List<CompanyRepresentative> loadCompanyReps(String path) throws IOException {
         List<CompanyRepresentative> list = new ArrayList<>();
         try (BufferedReader br = new BufferedReader(new FileReader(path))) {

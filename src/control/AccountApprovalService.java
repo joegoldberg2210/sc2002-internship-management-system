@@ -1,6 +1,8 @@
 package control;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import entity.CareerCenterStaff;
 import entity.CompanyRepresentative;
@@ -8,35 +10,75 @@ import entity.User;
 import enumerations.AccountStatus;
 
 public class AccountApprovalService {
-    private final List<User> users;
+    private final List<User> users;   // all users (students, staff, reps) with status
     private final DataLoader loader;
 
     public AccountApprovalService(List<User> users, DataLoader loader) {
-        this.users = users;
-        this.loader = loader;
+        this.users  = Objects.requireNonNull(users, "users must not be null");
+        this.loader = Objects.requireNonNull(loader, "loader must not be null");
     }
 
-    // submit a new company rep for approval
-    public void submitCompanyRepRegistration(CompanyRepresentative rep) {
-        if (rep == null) return;
+    /** register a new company rep -> add to users with status PENDING and persist */
+    public boolean submitCompanyRepRegistration(CompanyRepresentative rep) {
+        if (rep == null) return false;
+
+        final String key = User.canonical(rep.getId());
+
+        // block duplicates across all existing users (any type)
+        boolean duplicate = users.stream()
+                .anyMatch(u -> User.canonical(u.getId()).equals(key));
+        if (duplicate) return false;
+
         rep.setStatus(AccountStatus.PENDING);
-        if (users.stream().noneMatch(u -> u.getId().equalsIgnoreCase(rep.getId()))) {
-            users.add(rep);
+        users.add(rep);
+        loader.saveUsers(users);
+        return true;
+    }
+
+    /** approve: find the rep in users, set status -> APPROVED, persist */
+    public boolean approveCompanyRep(CareerCenterStaff staff, CompanyRepresentative rep) {
+        if (staff == null || rep == null) return false;
+
+        CompanyRepresentative stored = findRep(rep.getId());
+        if (stored == null) return false;
+
+        stored.setStatus(AccountStatus.APPROVED);
+        loader.saveUsers(users);
+        return true;
+    }
+
+    /** reject: keep user record, mark as REJECTED (so history is visible), persist */
+    public boolean rejectCompanyRep(CareerCenterStaff staff, CompanyRepresentative rep) {
+        if (staff == null || rep == null) return false;
+
+        CompanyRepresentative stored = findRep(rep.getId());
+        if (stored == null) return false;
+
+        stored.setStatus(AccountStatus.REJECTED);
+        loader.saveUsers(users);
+        return true;
+    }
+
+    /** helper: find a specific company rep (case/space-insensitive id) */
+    private CompanyRepresentative findRep(String id) {
+        final String key = User.canonical(id);
+        for (User u : users) {
+            if (u instanceof CompanyRepresentative cr
+                    && User.canonical(cr.getId()).equals(key)) {
+                return cr;
+            }
         }
-        loader.saveUsers(users);
+        return null;
     }
 
-    // approve a pending company rep
-    public void approveCompanyRep(CareerCenterStaff staff, CompanyRepresentative rep) {
-        if (staff == null || rep == null) return;
-        rep.setStatus(AccountStatus.APPROVED);
-        loader.saveUsers(users);
-    }
-
-    // reject a pending company rep (reason stored on the rep if you have a field for it)
-    public void rejectCompanyRep(CareerCenterStaff staff, CompanyRepresentative rep, String reason) {
-        if (staff == null || rep == null) return;
-        rep.setStatus(AccountStatus.REJECTED);
-        loader.saveUsers(users);
+    /** get all company representatives currently pending approval */
+    public List<CompanyRepresentative> getPendingCompanyReps() {
+        List<CompanyRepresentative> pending = new ArrayList<>();
+        for (User u : users) {
+            if (u instanceof CompanyRepresentative cr && cr.getStatus() == AccountStatus.PENDING) {
+                pending.add(cr);
+            }
+        }
+        return pending;
     }
 }
