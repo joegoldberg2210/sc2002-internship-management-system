@@ -4,7 +4,8 @@ public enum Major {
     CSC,
     DSAI,
     EEE,
-    MAE,
     CEG,
-    IEM
+    IEM,
+    BCG,
+    BCE
 }
