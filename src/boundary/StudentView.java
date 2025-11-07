@@ -58,7 +58,7 @@ public class StudentView {
         System.out.println("(1) Manage Account");
         System.out.println("(2) View Available Internships");
         System.out.println("(3) Apply New Internship");
-        System.out.println("(4) View My Internship Applications");
+        System.out.println("(4) View My Internship Application(s)");
         System.out.println("(5) Withdraw Internship Application");
         System.out.println();
         System.out.println("→ Type 'logout' here to logout");
@@ -156,26 +156,43 @@ public class StudentView {
     }
 
     private void viewApplications() {
-        ConsoleUI.sectionHeader("Student View > View Internship Applications");
+        ConsoleUI.sectionHeader("Student view > View My Internship Application(s)");
 
         List<Application> myApps = applicationService.getApplicationsForStudent(student);
+
         if (myApps.isEmpty()) {
-            System.out.println("No applications yet.");
-            ConsoleUI.sectionHeader("Student View");
+            System.out.println("✗ No applications found.\n");
+            System.out.print("Press enter to return... ");
+            sc.nextLine();
+            return;
         }
 
-        for (Application a : myApps) {
-            InternshipOpportunity o = a.getOpportunity();
-            System.out.println("----------------------------------------");
-            System.out.println("Application ID     : " + a.getId());
-            System.out.println("Status             : " + a.getStatus());
-            System.out.println("Applied at         : " + a.getAppliedAt());
-            System.out.println("Offer at           : " + a.getDecisionAt());
-            System.out.println("Accepted           : " + (a.isAccepted() ? "yes" : "no"));
-            System.out.println("Opportunity        : " + o.getTitle() + " @ " + o.getCompanyName());
+        System.out.println();
+        System.out.printf(
+            "%-4s %-15s %-25s %-28s %-10s %-10s %-12s %-12s%n",
+            "S/N", "Application ID", "Internship Title", "Company", "Major", "Level", "Status", "Applied Date"
+        );
+        System.out.println("-------------------------------------------------------------------------------------------------------------------------------");
+
+        int i = 1;
+        for (Application app : myApps) {
+            InternshipOpportunity opp = app.getOpportunity();
+            System.out.printf(
+                "%-4d %-15s %-25s %-28s %-10s %-10s %-12s %-12s%n",
+                i++,
+                app.getId(),
+                opp.getTitle(),
+                opp.getCompanyName(),
+                String.valueOf(opp.getPreferredMajor()),
+                String.valueOf(opp.getLevel()),
+                String.valueOf(app.getStatus()),
+                String.valueOf(app.getAppliedAt())
+            );
         }
- 
-        ConsoleUI.sectionHeader("Student View");
+
+        System.out.println("\n(Total: " + myApps.size() + " application(s))\n");
+        System.out.print("Press enter to return... ");
+        sc.nextLine();
     }
 
     private void applyForInternship() {
