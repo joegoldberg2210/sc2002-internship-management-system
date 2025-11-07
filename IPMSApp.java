@@ -7,7 +7,7 @@ import boundary.CompanyRepView;
 import boundary.CareerCenterStaffView;
 import control.AuthControl;
 import control.DataLoader;
-import control.AccountApprovalService;  // new
+import control.AccountApprovalService;
 import control.OpportunityService;
 import entity.InternshipOpportunity;
 import entity.Student;
@@ -18,44 +18,44 @@ import entity.User;
 public class IPMSApp {
     public static void main(String[] args) {
         DataLoader loader = new DataLoader();
-        List<User> users = loader.loadUsers();
-        List<InternshipOpportunity> opportunities = loader.loadOpportunities();
-        OpportunityService oppService = new OpportunityService(opportunities);
 
+        // load users (includes pending/approved/rejected in one list)
+        List<User> users = loader.loadUsers();
+
+        // load opportunities (no csv fallback; empty list if none)
+        List<InternshipOpportunity> opportunities = loader.loadOpportunities();
+
+        // pass loader so opportunityservice can persist after each change
+        OpportunityService oppService = new OpportunityService(opportunities, loader);
 
         if (users.isEmpty()) {
-            System.out.println("No users loaded. Please check CSV files.");
+            System.out.println("no users loaded. please check your serialized/users.ser or csv seed.");
             return;
         } else {
-            System.out.println(users.size() + " users loaded.\n");
-            for (User u : users) {
-                System.out.printf("id: %-12s | name: %-20s | role: %-25s%n",
-                        u.getId(),
-                        u.getName(),
-                        u.getClass().getSimpleName());
-            }
+            System.out.println(users.size() + " users loaded.");
         }
+
+        System.out.println(opportunities.size() + " internship opportunities loaded.\n");
 
         try (Scanner sc = new Scanner(System.in)) {
             AuthControl auth = new AuthControl(users);
-            AccountApprovalService approval = new AccountApprovalService(users, loader); // new
+            AccountApprovalService approval = new AccountApprovalService(users, loader);
             LoginView login = new LoginView(sc);
 
-            // note: run(...) now takes approval too (for company-rep registration)
             User logged = login.run(auth, approval);
 
             if (logged instanceof Student s) {
                 new StudentView(sc, s, users, loader).run();
-            }
-            else if (logged instanceof CompanyRepresentative cr) {
+            } else if (logged instanceof CompanyRepresentative cr) {
                 new CompanyRepView(sc, cr, users, loader, oppService).run();
-            }
-            else if (logged instanceof CareerCenterStaff staff) {
+            } else if (logged instanceof CareerCenterStaff staff) {
                 new CareerCenterStaffView(sc, staff, users, loader, approval).run();
             }
 
             auth.logout(logged);
-            loader.saveUsers(users); // persist any changes (e.g., new registrations, password updates)
+
+            // persist user changes like password updates or new registrations
+            loader.saveUsers(users);
         }
     }
 }

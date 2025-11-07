@@ -1,6 +1,5 @@
 package control;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -8,80 +7,100 @@ import java.util.stream.Collectors;
 import entity.CareerCenterStaff;
 import entity.CompanyRepresentative;
 import entity.InternshipOpportunity;
-import enumerations.InternshipLevel;
+import enumerations.Major;
 import enumerations.OpportunityStatus;
-import ui.ConsoleUI;
 
-/**
- * Handles creation, editing, approval and maintenance of internship opportunities.
- */
 public class OpportunityService {
 
     private final List<InternshipOpportunity> opportunities;
+    private final DataLoader loader; // for persistence
 
-    public OpportunityService(List<InternshipOpportunity> opportunities) {
-        this.opportunities = Objects.requireNonNull(opportunities);
+    public OpportunityService(List<InternshipOpportunity> opportunities, DataLoader loader) {
+        this.opportunities = Objects.requireNonNull(opportunities, "opportunities must not be null");
+        this.loader = Objects.requireNonNull(loader, "loader must not be null");
     }
 
-    // -------------------- COMPANY REP ACTIONS --------------------
+    // -------------------- company rep actions --------------------
 
-    /** Create a new internship opportunity */
-    public void createOpportunity(CompanyRepresentative rep, InternshipOpportunity opp) {
+    /** create a new internship opportunity (rejects duplicate ids) */
+    public boolean createOpportunity(CompanyRepresentative rep, InternshipOpportunity opp) {
+        if (rep == null || opp == null) {
+            System.out.println("✗ invalid data.");
+            return false;
+        }
+        if (findById(opp.getId()) != null) {
+            System.out.println("✗ duplicate id: " + opp.getId());
+            return false;
+        }
+
         opp.setRepInCharge(rep);
         opp.setStatus(OpportunityStatus.PENDING);
         opp.setVisibility(false);
+
         opportunities.add(opp);
-        System.out.println("✓ Opportunity created and awaiting staff approval.");
+        save();
+        System.out.println("✓ opportunity created and awaiting staff approval.");
+        return true;
     }
 
-    /** Edit an existing opportunity (only if rep owns it and it’s editable) */
-   public void editOpportunity(CompanyRepresentative rep, InternshipOpportunity updated) {
-    InternshipOpportunity existing = findById(updated.getId());
-    if (existing == null) {
-        System.out.println("✗ Opportunity not found.");
-        return;
-    }
-    if (!rep.equals(existing.getRepInCharge())) {
-        System.out.println("✗ You may only edit your own opportunities.");
-        return;
-    }
-
-    existing.setTitle(updated.getTitle());
-    existing.setDescription(updated.getDescription());
-    existing.setPreferredMajor(updated.getPreferredMajor());
-    existing.setLevel(updated.getLevel());
-    existing.setOpenDate(updated.getOpenDate());
-    existing.setCloseDate(updated.getCloseDate());
-    existing.setSlots(updated.getSlots());
-    existing.setStatus(OpportunityStatus.PENDING);
-    existing.setVisibility(false);
-
-    System.out.println("✓ Opportunity updated and sent for re-approval.");
-}
-
-
-
-    /** Delete an opportunity (only by the owning rep) */
-    public void deleteOpportunity(CompanyRepresentative rep, String id) {
-        InternshipOpportunity existing = findById(id);
+    /** edit an existing opportunity (only if rep owns it) */
+    public void editOpportunity(CompanyRepresentative rep, InternshipOpportunity updated) {
+        InternshipOpportunity existing = findById(updated.getId());
         if (existing == null) {
-            System.out.println("✗ Opportunity not found.");
+            System.out.println("✗ opportunity not found.");
             return;
         }
         if (!rep.equals(existing.getRepInCharge())) {
-            System.out.println("✗ You may only delete your own opportunities.");
+            System.out.println("✗ you may only edit your own opportunities.");
+            return;
+        }
+
+        existing.setTitle(updated.getTitle());
+        existing.setDescription(updated.getDescription());
+        Major newMajor = updated.getPreferredMajor();
+        existing.setPreferredMajor(newMajor);
+
+        existing.setLevel(updated.getLevel());
+        existing.setOpenDate(updated.getOpenDate());
+        existing.setCloseDate(updated.getCloseDate());
+        existing.setSlots(updated.getSlots());
+
+        // any edit requires re-approval
+        existing.setStatus(OpportunityStatus.PENDING);
+        existing.setVisibility(false);
+
+        save();
+        System.out.println("✓ opportunity updated and sent for re-approval.");
+    }
+
+    /** delete an opportunity (only by the owning rep) */
+    public void deleteOpportunity(CompanyRepresentative rep, String id) {
+        InternshipOpportunity existing = findById(id);
+        if (existing == null) {
+            System.out.println("✗ opportunity not found.");
+            return;
+        }
+        if (!rep.equals(existing.getRepInCharge())) {
+            System.out.println("✗ you may only delete your own opportunities.");
             return;
         }
         opportunities.remove(existing);
-        System.out.println("✓ Opportunity deleted.");
+        save();
+        System.out.println("✓ opportunity deleted.");
     }
 
-    /** Toggle visibility */
+    /** toggle visibility (call from appropriate ui; no ownership check here) */
     public void toggleVisibility(InternshipOpportunity opp, boolean visible) {
+        if (opp == null) {
+            System.out.println("✗ not found.");
+            return;
+        }
         opp.setVisibility(visible);
-        System.out.println(visible ? "✓ Now visible to students." : "✓ Hidden from students.");
+        save();
+        System.out.println(visible ? "✓ now visible to students." : "✓ hidden from students.");
     }
 
+    // -------------------- lookups --------------------
 
     public InternshipOpportunity findById(String id) {
         return opportunities.stream()
@@ -96,25 +115,57 @@ public class OpportunityService {
                 .collect(Collectors.toList());
     }
 
-    // -------------------- STAFF ACTIONS --------------------
+    /** filter by preferred major (enum) */
+    public List<InternshipOpportunity> getByMajor(Major major) {
+        return opportunities.stream()
+                .filter(o -> o.getPreferredMajor() == major)
+                .collect(Collectors.toList());
+    }
 
-    /** Approve an opportunity */
+    /** convenience getters */
+    public List<InternshipOpportunity> getAllOpportunities() { return opportunities; }
+
+    public List<InternshipOpportunity> getPending() {
+        return opportunities.stream()
+                .filter(o -> o.getStatus() == OpportunityStatus.PENDING)
+                .collect(Collectors.toList());
+    }
+
+    public List<InternshipOpportunity> getApproved() {
+        return opportunities.stream()
+                .filter(o -> o.getStatus() == OpportunityStatus.APPROVED)
+                .collect(Collectors.toList());
+    }
+
+    // -------------------- staff actions --------------------
+
+    /** approve an opportunity */
     public void approveOpportunity(CareerCenterStaff staff, InternshipOpportunity opp) {
+        if (staff == null || opp == null) {
+            System.out.println("✗ invalid data.");
+            return;
+        }
         opp.setStatus(OpportunityStatus.APPROVED);
         opp.setVisibility(true);
-        System.out.println("✓ Approved by " + staff.getName() + ".");
+        save();
+        System.out.println("✓ approved by " + staff.getName() + ".");
     }
 
-    /** Reject an opportunity */
-    public void rejectOpportunity(CareerCenterStaff staff, InternshipOpportunity opp, String reason) {
+    /** reject an opportunity (no reason) */
+    public void rejectOpportunity(CareerCenterStaff staff, InternshipOpportunity opp) {
+        if (staff == null || opp == null) {
+            System.out.println("✗ invalid data.");
+            return;
+        }
         opp.setStatus(OpportunityStatus.REJECTED);
         opp.setVisibility(false);
-        System.out.println("✗ Rejected by " + staff.getName() + ". Reason: " + reason);
+        save();
+        System.out.println("✓ rejected by " + staff.getName() + ".");
     }
 
-    // -------------------- SYSTEM UTILITIES --------------------
+    // -------------------- system utilities --------------------
 
-    /** Check if all slots are filled and update status accordingly */
+    /** check if all slots are filled and update status accordingly */
     public void recomputeFilledStatus(InternshipOpportunity opp) {
         if (opp.getConfirmedSlots() >= opp.getSlots()) {
             opp.setStatus(OpportunityStatus.FILLED);
@@ -122,6 +173,12 @@ public class OpportunityService {
         } else if (opp.getStatus() == OpportunityStatus.FILLED) {
             opp.setStatus(OpportunityStatus.APPROVED);
         }
+        save();
     }
 
+    // -------------------- persistence --------------------
+
+    private void save() {
+        loader.saveOpportunities(opportunities);
+    }
 }

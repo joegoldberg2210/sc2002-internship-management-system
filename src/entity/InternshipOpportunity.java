@@ -2,6 +2,7 @@ package entity;
 
 import enumerations.*;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -10,13 +11,13 @@ import java.util.*;
  * Represents an internship opportunity created by a Company Representative.
  * Includes details such as title, description, level, and status as well as operational methods to check if it is open or editable.
  */
-public class InternshipOpportunity {
-
+public class InternshipOpportunity implements Serializable {
+    private static final long serialVersionUID = 1L;
     private final String id;                         // Unique ID of the internship
     private String title;                      // Internship title
     private String description;                // Brief description of the internship
     private InternshipLevel level;             // Internship difficulty level (Basic, Intermediate, Advanced)
-    private String preferredMajor;             // Preferred major of applicants
+    private Major preferredMajor;             // Preferred major of applicants
     private LocalDate openDate;                     // Opening date for applications
     private LocalDate closeDate;                    // Closing date for applications
     private OpportunityStatus status;          // Current status (Pending, Approved, Rejected, Filled)
@@ -28,14 +29,12 @@ public class InternshipOpportunity {
 
 
     // === Constructor ===
-    public InternshipOpportunity(String id, String title, String description, InternshipLevel level,
-                                 String preferredMajor, LocalDate openDate, LocalDate closeDate,
-                                 String companyName, int slots, CompanyRepresentative repInCharge) {
+    public InternshipOpportunity(String id, String title, String description, InternshipLevel level, Major preferredMajor, LocalDate openDate, LocalDate closeDate, String companyName, int slots, CompanyRepresentative repInCharge) {
         this.id = id;
         this.title = title;
         this.description = description;
         this.level = level;
-        this.preferredMajor = preferredMajor;
+        this.preferredMajor = preferredMajor; 
         this.openDate = openDate;
         this.closeDate = closeDate;
         this.companyName = companyName;
@@ -119,8 +118,8 @@ public class InternshipOpportunity {
         return level;
     }
 
-    public String getPreferredMajor() {
-        return preferredMajor;
+    public Major getPreferredMajor() { 
+        return preferredMajor; 
     }
 
     public LocalDate getOpenDate() {
@@ -171,7 +170,7 @@ public class InternshipOpportunity {
         this.title = title;
     }
 
-    public void setPreferredMajor(String preferredMajor) {
+    public void setPreferredMajor(Major preferredMajor) { 
         this.preferredMajor = preferredMajor;
     }
 
