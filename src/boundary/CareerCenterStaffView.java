@@ -179,11 +179,11 @@ public class CareerCenterStaffView {
 
         List<InternshipOpportunity> pending = oppService.getPending();
         if (pending.isEmpty()) {
-            System.out.println("no pending internship opportunity.\n");
-            return;
+            System.out.println("No pending internship opportunity.\n");
+            ConsoleUI.sectionHeader("Career Center Staff View");
         }
 
-        System.out.println("pending opportunities:");
+        System.out.println("Pending opportunities:");
         for (int i = 0; i < pending.size(); i++) {
             InternshipOpportunity o = pending.get(i);
             System.out.printf("(%d) %s [%s] — major=%s, level=%s, slots %d/%d%n",
@@ -221,14 +221,14 @@ public class CareerCenterStaffView {
                 System.out.println("✓ approved. opportunity is now visible to eligible students.\n");
                 System.out.print("Press any key to continue... ");
                 sc.nextLine(); 
-                run();
+                ConsoleUI.sectionHeader("Career Center Staff View");
             }
             case "2" -> {
                 oppService.rejectOpportunity(staff, sel);  // persists inside service
                 System.out.println("✓ rejected.\n");
                 System.out.print("Press any key to continue... ");
                 sc.nextLine(); 
-                run();
+                ConsoleUI.sectionHeader("Career Center Staff View");
             }
             case "0" -> { /* back */ }
             default -> System.out.println("✗ invalid choice.\n");

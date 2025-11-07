@@ -13,7 +13,7 @@ import java.util.*;
  */
 public class InternshipOpportunity implements Serializable {
     private static final long serialVersionUID = 1L;
-    private final String id;                         // Unique ID of the internship
+    private String id;                         // Unique ID of the internship
     private String title;                      // Internship title
     private String description;                // Brief description of the internship
     private InternshipLevel level;             // Internship difficulty level (Basic, Intermediate, Advanced)
@@ -150,6 +150,10 @@ public class InternshipOpportunity implements Serializable {
 
     public CompanyRepresentative getRepInCharge() {
         return repInCharge;
+    }
+
+    public void setId(String id) { 
+        this.id = id; 
     }
 
     public void setStatus(OpportunityStatus status) {

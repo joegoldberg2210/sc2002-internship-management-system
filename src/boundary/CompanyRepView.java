@@ -327,7 +327,7 @@ public class CompanyRepView {
 
         System.out.println();   
         System.out.printf(
-            "%-4s %-8s %-25s %-12s %-15s %-9s %-10s %-10s %-15s%n",
+            "%-4s %-15s %-25s %-12s %-15s %-9s %-10s %-10s %-15s%n",
             "S/N", "ID", "Title", "Major", "Level", "Slots", "Status", "Visible", "Company"
         );
         System.out.println("----------------------------------------------------------------------------------------------------------------");
@@ -337,7 +337,7 @@ public class CompanyRepView {
             String slotsStr = String.format("%d/%d", opp.getConfirmedSlots(), opp.getSlots());
 
             System.out.printf(
-                "%-4d %-8s %-25s %-12s %-15s %-9s %-10s %-10s %-15s%n",
+                "%-4d %-15s %-25s %-12s %-15s %-9s %-10s %-10s %-15s%n",
                 i++,
                 opp.getId(),                 // %s
                 opp.getTitle(),              // %s

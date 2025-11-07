@@ -30,7 +30,7 @@ public class ApplicationService {
         if (hasActiveApplication(student, opp)) return null;
 
         // create + persist
-        String appId = "APP-" + UUID.randomUUID().toString().substring(0, 6);
+        String appId = "APP-" + UUID.randomUUID().toString().substring(0, 6).toUpperCase();
         Application app = new Application(appId, student, opp); // defaults to PENDING
         applications.add(app);
         save();

@@ -2,6 +2,7 @@ package control;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import entity.CareerCenterStaff;
@@ -22,16 +23,20 @@ public class OpportunityService {
 
     // -------------------- company rep actions --------------------
 
-    /** create a new internship opportunity (rejects duplicate ids) */
+    /** create a new internship opportunity (auto-generates unique id and rejects duplicates) */
     public boolean createOpportunity(CompanyRepresentative rep, InternshipOpportunity opp) {
         if (rep == null || opp == null) {
             System.out.println("✗ invalid data.");
             return false;
         }
-        if (findById(opp.getId()) != null) {
-            System.out.println("✗ duplicate id: " + opp.getId());
-            return false;
-        }
+
+        // generate a unique internship id in the format ITP-xxxxxx
+        String newId;
+        do {
+            newId = "ITP-" + UUID.randomUUID().toString().substring(0, 6).toUpperCase();
+        } while (findById(newId) != null); // ensure no duplicates
+
+        opp.setId(newId); // assign generated id
 
         opp.setRepInCharge(rep);
         opp.setStatus(OpportunityStatus.PENDING);
@@ -39,7 +44,8 @@ public class OpportunityService {
 
         opportunities.add(opp);
         save();
-        System.out.println("✓ Internship opportunity created and awaiting Career Staff approval.");
+        System.out.println("✓ Internship opportunity created with ID: " + newId);
+        System.out.println("✓ Awaiting Career Staff approval.");
         return true;
     }
 
