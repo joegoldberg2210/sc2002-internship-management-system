@@ -12,37 +12,78 @@ import ui.ConsoleUI;
 public class LoginView {
     private final Scanner sc;
 
+    // constructor
     public LoginView(Scanner sc) {
         this.sc = sc;
     }
+
+    /**
+     * main login interface shown to all users
+     * allows user to:
+     * (1) login into their existing account
+     * (2) register for a new account
+     * (#) exit system
+     */
 
     public User run(AuthControl auth, AccountApprovalService approval) {
         ConsoleUI.bigBanner();
 
         while (true) {
-            int role = selectRole();
-            String roleName = roleName(role);
+            String menu = mainMenu();
+            if (menu.equals("#")) {
+                System.out.println("\n✓ logged out of system.\n");
+                return null; 
+            }
 
-            if (role == 2 && wantsRegistration()) {
+            // login flow
+            if (menu.equals("1")) {
+                int role = selectRole();
+                String roleName = roleName(role);
+
+                String[] creds = askCredentials(roleName);
+                if (creds[0].isEmpty()) continue;
+
+                // authenticate user credentials
+                User logged = auth.login(creds[0], creds[1], role);
+                if (logged != null) {
+                    System.out.println("✓ Login successful!");
+                    return logged;
+                }
+                System.out.println("✗ Invalid ID or password. Please try again.\n");
+            } 
+            // create account flow
+            else if (menu.equals("2")) {
+                int role = selectRole();
+                if (role != 2) {
+                    System.out.println("\n✗ Only Company Representatives can register for an account.\n");
+                    continue;
+                }
                 registerCompanyRep(approval, auth);
-                continue;
             }
+        }
+    }
 
-            String[] creds = askCredentials(roleName);
-            if (creds[0].isEmpty()) continue;
+    // print main menu
+    private String mainMenu() {
+        System.out.println("What would you like to do?");
+        System.out.println("(1) Login");
+        System.out.println("(2) Create New Account");
+        System.out.println("(#) Exit System");
+        System.out.println();
+        System.out.print("Enter choice: ");
 
-            User logged = auth.login(creds[0], creds[1], role);
-            if (logged != null) {
-                System.out.println("✓ Login Successful!");
-                return logged;
+        while (true) {
+            String input = sc.nextLine().trim();
+            if (input.equals("#") || input.matches("[1-2]")) {
+                return input;
             }
-
-            System.out.println("✗ Invalid ID or password. Please try again.\n");
+            System.out.print("Invalid choice. Enter choice: ");
         }
     }
 
     private int selectRole() {
-        System.out.println("Choose your role:");
+        System.out.println();
+        System.out.println("What is your role?");
         System.out.println("(1) Student");
         System.out.println("(2) Company Representative");
         System.out.println("(3) Career Center Staff");
@@ -61,7 +102,7 @@ public class LoginView {
             case 1 -> "Student";
             case 2 -> "Company Representative";
             case 3 -> "Career Center Staff";
-            default -> "User";
+            default -> throw new IllegalArgumentException("Invalid role selected: " + role);
         };
     }
 
@@ -69,84 +110,58 @@ public class LoginView {
         ConsoleUI.loginBox(role + " Login");
         System.out.print(role + " ID: ");
         String id = sc.nextLine().trim();
-        System.out.print("Password: ");
+        System.out.print("password: ");
         String pwd = sc.nextLine().trim();
         System.out.println();
         return new String[]{ id, pwd };
     }
 
-    // ask if the user already has an account; if not, proceed to registration
-    private boolean wantsRegistration() {
-        System.out.println();
-        System.out.print("Do you have an existing account? (y/n): ");
-        
-        while (true) {
-            String ans = sc.nextLine().trim().toLowerCase();
-
-            if (ans.equals("y") || ans.equals("yes")) {
-                // user already has an account → go back to login
-                return false;
-            } 
-            else if (ans.equals("n") || ans.equals("no")) {
-                // user does not have an account → proceed to registration
-                return true;
-            } 
-            else {
-                System.out.print("✗ Please enter 'y' or 'n': ");
-            }
-        }
-    }
-
     private void registerCompanyRep(AccountApprovalService approval, AuthControl auth) {
         ConsoleUI.sectionHeader("Company Representative Registration");
 
-        // ensure uniqueness against existing users before proceeding
         String id = promptUniqueCompanyRepId(auth);
 
         System.out.print("Full Name: ");
         String name = sc.nextLine().trim();
-
+        
         System.out.print("Company Name: ");
         String company = sc.nextLine().trim();
 
         System.out.print("Department: ");
-        String dept = sc.nextLine().trim();
+        String department = sc.nextLine().trim();
 
         System.out.print("Position: ");
-        String pos = sc.nextLine().trim();
+        String position = sc.nextLine().trim();
 
-        // default password policy for first login
-        String defaultPwd = "password";
+        CompanyRepresentative rep = new CompanyRepresentative(id, name, company, department, position, AccountStatus.PENDING);
 
-        CompanyRepresentative rep =
-            new CompanyRepresentative(id, name, company, dept, pos, AccountStatus.PENDING);
-
-        // submit for approval (status -> pending)
-        approval.submitCompanyRepRegistration(rep);
+        boolean validID = approval.submitCompanyRepRegistration(rep);
+        if (!validID) {
+            System.out.println("\n✗ This ID is already registered with us. Please choose another ID.\n");
+            return;
+        }
 
         System.out.println("\n✓ Registration submitted. Status: PENDING.");
-        System.out.println("  You can log in after a career center staff approves your account.\n");
+        System.out.println("You can log in after a Career Center Staff approves your account.\n");
     }
 
-    /** keep asking until the id looks like an email and is not already used by any existing user */
     private String promptUniqueCompanyRepId(AuthControl auth) {
         while (true) {
-            System.out.print("Company Representative ID (email): ");
+            System.out.print("Company Representative ID: ");
             String id = sc.nextLine().trim();
 
-            if (!isLikelyEmail(id)) {
-                System.out.println("✗ please enter a valid email address.");
+            // check if email address is valid
+            if (!id.matches("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$")) {
+                System.out.println("✗ Please enter a valid email address.");
                 continue;
             }
+
+            // check if the ID already exists in existing company representative records
             if (auth.userIdTaken(id)) {
-                System.out.println("✗ this id is already registered by an existing user. please use another.");
+                System.out.println("✗ This ID is already registered with us. Please choose another ID.\n");
                 continue;
             }
             return id;
         }
-    }
-
-    private boolean isLikelyEmail(String s) {
-        return s.matches("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$");
     }
 }
