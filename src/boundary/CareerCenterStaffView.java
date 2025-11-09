@@ -123,54 +123,84 @@ public class CareerCenterStaffView {
 
         List<CompanyRepresentative> pending = approval.getPendingCompanyReps();
         if (pending == null || pending.isEmpty()) {
-            System.out.println("No pending registration(s).\n");
-            
-            // prompt user to continue
-            System.out.print("Press any key to continue... ");
-            sc.nextLine(); 
-            run();
+            System.out.println("✗ No pending company representative registration(s).\n");
+            System.out.print("Press enter to continue... ");
+            sc.nextLine();
+            ConsoleUI.sectionHeader("Career Center Staff View");
+            return;
         }
 
-        printRepList("Pending Registrations", pending);
+        // table header
+        System.out.println();
+        System.out.printf(
+            "%-4s %-15s %-25s %-25s %-20s %-20s%n",
+            "S/N", "ID", "Name", "Company", "Department", "Position"
+        );
+        System.out.println("---------------------------------------------------------------------------------------------------------------");
 
-        System.out.print("select # to review (or 0 to go back): ");
+        int i = 1;
+        for (CompanyRepresentative r : pending) {
+            System.out.printf(
+                "%-4d %-15s %-25s %-25s %-20s %-20s%n",
+                i++,
+                r.getId(),
+                r.getName(),
+                r.getCompanyName(),
+                r.getDepartment(),
+                r.getPosition()
+            );
+        }
+
+        System.out.println("\n(Total: " + pending.size() + " pending company representative applications)\n");
+
+        // selection
+        System.out.print("Select # to review (or 0 to go back): ");
         int idx = readIndex(pending.size());
-        if (idx == 0) return;
+        if (idx == 0) {
+            ConsoleUI.sectionHeader("Career Center Staff View");
+            return;
+        }
 
         CompanyRepresentative rep = pending.get(idx - 1);
-        System.out.println();
-        System.out.println("selected : " + rep.getName() + " (" + rep.getId() + ")");
-        System.out.println("company  : " + rep.getCompanyName());
-        System.out.println("department: " + rep.getDepartment());
-        System.out.println("position : " + rep.getPosition());
-        System.out.println();
 
+        // detail block (clean, aligned)
+        System.out.println("\n────────────────────────────────────────────────────────────");
+        System.out.println("          COMPANY REPRESENTATIVE APPLICATION DETAILS        ");
+        System.out.println("────────────────────────────────────────────────────────────");
+        System.out.printf("%-18s: %s%n", "Name", rep.getName());
+        System.out.printf("%-18s: %s%n", "Representative ID", rep.getId());
+        System.out.printf("%-18s: %s%n", "Company", rep.getCompanyName());
+        System.out.printf("%-18s: %s%n", "Department", rep.getDepartment());
+        System.out.printf("%-18s: %s%n", "Position", rep.getPosition());
+        System.out.println("────────────────────────────────────────────────────────────\n");
+
+        // action menu
         System.out.println("(1) Approve Application");
         System.out.println("(2) Reject Application");
-        System.out.println("(0) Back to Career Center Staff View ");
+        System.out.println("(0) Back to Career Center Staff View");
+        System.out.println();  
         System.out.print("Enter choice: ");
         String c = sc.nextLine().trim();
 
         switch (c) {
             case "1" -> {
-                boolean validCompanyRep = approval.approveCompanyRep(staff, rep);
-                System.out.println(validCompanyRep ? "✓ approved.\n": "✗ could not approve (duplicate id or not found in pending).\n");
-                // prompt user to continue
-                System.out.print("Press any key to continue... ");
-                sc.nextLine(); 
+                boolean ok = approval.approveCompanyRep(staff, rep);
+                System.out.println(ok ? "✓ Approved.\n" : "✗ Could not approve (duplicate id or not found in pending).\n");
+                System.out.print("Press enter to continue... ");
+                sc.nextLine();
                 ConsoleUI.sectionHeader("Career Center Staff View");
             }
             case "2" -> {
-                boolean validCompanyRep = approval.rejectCompanyRep(staff, rep);
-                // if you changed the service signature to rejectCompanyRep(staff, rep), then call that instead.
-                System.out.println(validCompanyRep ? "✓ rejected.\n": "✗ could not reject (not found in pending).\n");
-                // prompt user to continue
-                System.out.print("Press any key to continue... ");
-                sc.nextLine(); 
+                boolean ok = approval.rejectCompanyRep(staff, rep);
+                System.out.println(ok ? "✓ Rejected.\n" : "✗ Could not reject (not found in pending).\n");
+                System.out.print("Press enter to continue... ");
+                sc.nextLine();
                 ConsoleUI.sectionHeader("Career Center Staff View");
             }
-            case "0" -> { ConsoleUI.sectionHeader("Career Center Staff View"); }
-            default -> System.out.println("✗ invalid choice.\n");
+            case "0" -> {
+                ConsoleUI.sectionHeader("Career Center Staff View");
+            }
+            default -> System.out.println("✗ Invalid choice.\n");
         }
     }
 
@@ -179,59 +209,91 @@ public class CareerCenterStaffView {
 
         List<InternshipOpportunity> pending = oppService.getPending();
         if (pending.isEmpty()) {
-            System.out.println("No pending internship opportunity.\n");
+            System.out.println("✗ No pending internship opportunities.\n");
             ConsoleUI.sectionHeader("Career Center Staff View");
+            return;
         }
 
-        System.out.println("Pending opportunities:");
-        for (int i = 0; i < pending.size(); i++) {
-            InternshipOpportunity o = pending.get(i);
-            System.out.printf("(%d) %s [%s] — major=%s, level=%s, slots %d/%d%n",
-                    i + 1, o.getTitle(), o.getCompanyName(), o.getPreferredMajor(),
-                    o.getLevel(), o.getConfirmedSlots(), o.getSlots());
-        }
+        // table header
         System.out.println();
+        System.out.printf(
+            "%-4s %-15s %-25s %-12s %-12s %-9s %-15s %-12s %-16s%n",
+            "S/N", "ID", "Title", "Major", "Level", "Slots", "Company", "Open Date", "Closing Date"
+        );
+        System.out.println("--------------------------------------------------------------------------------------------------------------------------------");
 
-        System.out.print("select # to review (or 0 to go back): ");
+        int i = 1;
+        for (InternshipOpportunity o : pending) {
+            String slotsStr = String.format("%d/%d", o.getConfirmedSlots(), o.getSlots());
+            System.out.printf(
+                "%-4d %-15s %-25s %-12s %-12s %-9s %-15s %-12s %-16s%n",
+                i++,
+                o.getId(),
+                o.getTitle(),
+                String.valueOf(o.getPreferredMajor()),
+                String.valueOf(o.getLevel()),
+                slotsStr,
+                o.getCompanyName(),
+                String.valueOf(o.getOpenDate()),
+                String.valueOf(o.getCloseDate())
+            );
+        }
+
+        System.out.println("\n(Total: " + pending.size() + " pending internship opportunities)\n");
+
+        // selection
+        System.out.print("Select # to review (or 0 to go back): ");
         int idx = readIndex(pending.size());
-        if (idx == 0) return;
+        if (idx == 0) {
+            ConsoleUI.sectionHeader("Career Center Staff View");
+            return;
+        }
 
         InternshipOpportunity sel = pending.get(idx - 1);
 
+        // detail view
         System.out.println();
-        System.out.println("selected : " + sel.getTitle() + " (" + sel.getId() + ")");
-        System.out.println("company  : " + sel.getCompanyName());
-        System.out.println("major    : " + sel.getPreferredMajor());
-        System.out.println("level    : " + sel.getLevel());
-        System.out.println("open     : " + sel.getOpenDate());
-        System.out.println("close    : " + sel.getCloseDate());
-        System.out.println("slots    : " + sel.getConfirmedSlots() + "/" + sel.getSlots());
-        System.out.println("status   : " + sel.getStatus());
+        System.out.println("\n────────────────────────────────────────────────────────────");
+        System.out.println("                 INTERNSHIP OPPORTUNITY DETAILS              ");
+        System.out.println("────────────────────────────────────────────────────────────");
+        System.out.printf("%-18s: %s%n", "Opportunity ID", sel.getId());
+        System.out.printf("%-18s: %s%n", "Internship Title", sel.getTitle());
+        System.out.printf("%-18s: %s%n", "Company", sel.getCompanyName());
+        System.out.printf("%-18s: %s%n", "Major", sel.getPreferredMajor());
+        System.out.printf("%-18s: %s%n", "Level", sel.getLevel());
+        System.out.printf("%-18s: %s%n", "Open Date", sel.getOpenDate());
+        System.out.printf("%-18s: %s%n", "Close Date", sel.getCloseDate());
+        System.out.printf("%-18s: %d/%d%n", "Slots", sel.getConfirmedSlots(), sel.getSlots());
+        System.out.printf("%-18s: %s%n", "Status", sel.getStatus());
+        System.out.println("────────────────────────────────────────────────────────────\n");
         System.out.println();
 
-        System.out.println("(1) approve");
-        System.out.println("(2) reject");
-        System.out.println("(0) back");
-        System.out.print("enter choice: ");
+        System.out.println("(1) Approve");
+        System.out.println("(2) Reject");
+        System.out.println("(0) Back to Career Center Staff View");
+        System.out.println();
+        System.out.print("Enter choice: ");
         String c = sc.nextLine().trim();
 
         switch (c) {
             case "1" -> {
                 oppService.approveOpportunity(staff, sel); // persists inside service
-                System.out.println("✓ approved. opportunity is now visible to eligible students.\n");
-                System.out.print("Press any key to continue... ");
-                sc.nextLine(); 
+                System.out.println("✓ Approved. Opportunity is now visible to eligible students.\n");
+                System.out.print("Press enter to continue... ");
+                sc.nextLine();
                 ConsoleUI.sectionHeader("Career Center Staff View");
             }
             case "2" -> {
                 oppService.rejectOpportunity(staff, sel);  // persists inside service
-                System.out.println("✓ rejected.\n");
-                System.out.print("Press any key to continue... ");
-                sc.nextLine(); 
+                System.out.println("✓ Rejected.\n");
+                System.out.print("Press enter to continue... ");
+                sc.nextLine();
                 ConsoleUI.sectionHeader("Career Center Staff View");
             }
-            case "0" -> { /* back */ }
-            default -> System.out.println("✗ invalid choice.\n");
+            case "0" -> {
+                ConsoleUI.sectionHeader("Career Center Staff View");
+            }
+            default -> System.out.println("✗ Invalid choice.\n");
         }
     }
 
