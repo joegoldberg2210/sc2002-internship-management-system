@@ -165,7 +165,7 @@ public class CareerCenterStaffView {
 
         // detail block (clean, aligned)
         System.out.println("\n────────────────────────────────────────────────────────────");
-        System.out.println("          COMPANY REPRESENTATIVE APPLICATION DETAILS        ");
+        System.out.println("          Company Representative Application Details        ");
         System.out.println("────────────────────────────────────────────────────────────");
         System.out.printf("%-18s: %s%n", "Name", rep.getName());
         System.out.printf("%-18s: %s%n", "Representative ID", rep.getId());
@@ -254,7 +254,7 @@ public class CareerCenterStaffView {
         // detail view
         System.out.println();
         System.out.println("\n────────────────────────────────────────────────────────────");
-        System.out.println("                 INTERNSHIP OPPORTUNITY DETAILS              ");
+        System.out.println("                 Internship Opportunity Details              ");
         System.out.println("────────────────────────────────────────────────────────────");
         System.out.printf("%-18s: %s%n", "Opportunity ID", sel.getId());
         System.out.printf("%-18s: %s%n", "Internship Title", sel.getTitle());
