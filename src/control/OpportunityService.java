@@ -53,14 +53,6 @@ public class OpportunityService {
     /** edit an existing opportunity (only if rep owns it) */
     public void editOpportunity(CompanyRepresentative rep, InternshipOpportunity updated) {
         InternshipOpportunity existing = findById(updated.getId());
-        if (existing == null) {
-            System.out.println("✗ opportunity not found.");
-            return;
-        }
-        if (!rep.equals(existing.getRepInCharge())) {
-            System.out.println("✗ you may only edit your own opportunities.");
-            return;
-        }
 
         existing.setTitle(updated.getTitle());
         existing.setDescription(updated.getDescription());

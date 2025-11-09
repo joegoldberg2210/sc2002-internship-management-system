@@ -12,6 +12,7 @@ import entity.InternshipOpportunity;
 import entity.User;
 import enumerations.InternshipLevel;
 import enumerations.Major;
+import enumerations.OpportunityStatus;
 import ui.ConsoleUI;
 
 public class CompanyRepView {
@@ -218,6 +219,8 @@ public class CompanyRepView {
                 System.out.println("✗ Opportunity not found.");
             } else if (!rep.equals(existing.getRepInCharge())) {
                 System.out.println("✗ You may only edit your own opportunities.");
+            } else if (existing.getStatus() != OpportunityStatus.PENDING) {
+                System.out.println("✗ You cannot edit an opportunity that has already been approved by Career Center Staff."); 
             } else {
                 boolean editing = true;
                 while (editing) {
@@ -324,26 +327,27 @@ public class CompanyRepView {
 
         System.out.println();   
         System.out.printf(
-            "%-4s %-15s %-25s %-12s %-25s %-9s %-10s %-10s %-15s%n",
-            "S/N", "ID", "Title", "Major", "Level", "Slots", "Status", "Visible", "Company"
+            "%-4s %-15s %-25s %-12s %-15s %-9s %-10s %-10s %-15s %-12s%n",
+            "S/N", "ID", "Title", "Major", "Level", "Slots", "Status", "Visible", "Company", "Opp Status"
         );
-        System.out.println("-------------------------------------------------------------------------------------------------------------------------");
+        System.out.println("---------------------------------------------------------------------------------------------------------------------------------------");
 
         int i = 1;
         for (InternshipOpportunity opp : myOpps) {
             String slotsStr = String.format("%d/%d", opp.getConfirmedSlots(), opp.getSlots());
 
             System.out.printf(
-                "%-4d %-15s %-25s %-12s %-25s %-9s %-10s %-10s %-15s%n",
+                "%-4d %-15s %-25s %-12s %-15s %-9s %-10s %-10s %-15s %-12s%n",
                 i++,
-                opp.getId(),                 // %s
-                opp.getTitle(),              // %s
-                String.valueOf(opp.getPreferredMajor()), // %s
-                String.valueOf(opp.getLevel()),          // %s
-                slotsStr,                    // %s
-                String.valueOf(opp.getStatus()),         // %s
-                opp.isVisible() ? "yes" : "no",          // %s
-                opp.getCompanyName()         // %s
+                opp.getId(),
+                opp.getTitle(),
+                String.valueOf(opp.getPreferredMajor()),
+                String.valueOf(opp.getLevel()),
+                slotsStr,
+                String.valueOf(opp.getStatus()),
+                opp.isVisible() ? "yes" : "no",
+                opp.getCompanyName(),
+                String.valueOf(opp.getStatus())  // newly added column for opportunity status
             );
         }
 
