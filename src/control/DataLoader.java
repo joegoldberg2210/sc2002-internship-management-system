@@ -150,7 +150,7 @@ public class DataLoader {
             System.out.println("loaded opportunities from saved data (" + new File(OPPORTUNITIES_FILE) + ")");
             return saved;
         }
-        System.out.println("no saved opportunity data found. returning empty list (no fallback).");
+        System.out.println("no saved opportunity data found. returning empty list.");
         return new ArrayList<>();
     }
 
@@ -170,7 +170,7 @@ public class DataLoader {
             System.out.println("loaded applications from saved data (" + new File(APPLICATIONS_FILE) + ")");
             return saved;
         }
-        System.out.println("no saved application data found. returning empty list (no fallback).");
+        System.out.println("no saved application data found. returning empty list.");
         return new ArrayList<>();
     }
 
