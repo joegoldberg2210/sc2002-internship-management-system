@@ -194,6 +194,8 @@ public class DataLoader {
             case "DATA SCIENCE & AI", "DSAI" -> { return Major.DSAI; }
             case "COMPUTER ENGINEERING", "CEG" -> { return Major.CEG; }
             case "INFORMATION ENGINEERING & MEDIA", "IEM" -> { return Major.IEM; }
+            case "BUSINESS & COMPUTER SCIENCE", "BCG" -> { return Major.BCG; }
+            case "BUSINESS & COMPUTER ENGINEERING", "BCE" -> { return Major.BCE; }
              default -> throw new IllegalArgumentException("invalid major: " + s);
         }
     }
