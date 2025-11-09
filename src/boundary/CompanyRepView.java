@@ -201,9 +201,6 @@ public class CompanyRepView {
         // create and persist
         opportunityService.createOpportunity(rep, opp);
 
-        // immediately save updated list
-        loader.saveOpportunities(opportunityService.getAllOpportunities());
-
         ConsoleUI.sectionHeader("Company Representative View");
     }
 
@@ -327,17 +324,17 @@ public class CompanyRepView {
 
         System.out.println();   
         System.out.printf(
-            "%-4s %-15s %-25s %-12s %-15s %-9s %-10s %-10s %-15s%n",
+            "%-4s %-15s %-25s %-12s %-25s %-9s %-10s %-10s %-15s%n",
             "S/N", "ID", "Title", "Major", "Level", "Slots", "Status", "Visible", "Company"
         );
-        System.out.println("----------------------------------------------------------------------------------------------------------------");
+        System.out.println("-------------------------------------------------------------------------------------------------------------------------");
 
         int i = 1;
         for (InternshipOpportunity opp : myOpps) {
             String slotsStr = String.format("%d/%d", opp.getConfirmedSlots(), opp.getSlots());
 
             System.out.printf(
-                "%-4d %-15s %-25s %-12s %-15s %-9s %-10s %-10s %-15s%n",
+                "%-4d %-15s %-25s %-12s %-25s %-9s %-10s %-10s %-15s%n",
                 i++,
                 opp.getId(),                 // %s
                 opp.getTitle(),              // %s

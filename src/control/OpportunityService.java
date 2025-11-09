@@ -44,6 +44,7 @@ public class OpportunityService {
 
         opportunities.add(opp);
         save();
+        System.out.println();
         System.out.println("✓ Internship opportunity created with ID: " + newId);
         System.out.println("✓ Awaiting Career Staff approval.");
         return true;

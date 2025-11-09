@@ -158,7 +158,7 @@ public class CareerCenterStaffView {
                 // prompt user to continue
                 System.out.print("Press any key to continue... ");
                 sc.nextLine(); 
-                run();
+                ConsoleUI.sectionHeader("Career Center Staff View");
             }
             case "2" -> {
                 boolean validCompanyRep = approval.rejectCompanyRep(staff, rep);
@@ -167,9 +167,9 @@ public class CareerCenterStaffView {
                 // prompt user to continue
                 System.out.print("Press any key to continue... ");
                 sc.nextLine(); 
-                run();
+                ConsoleUI.sectionHeader("Career Center Staff View");
             }
-            case "0" -> { /* back */ }
+            case "0" -> { ConsoleUI.sectionHeader("Career Center Staff View"); }
             default -> System.out.println("✗ invalid choice.\n");
         }
     }

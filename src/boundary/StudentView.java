@@ -133,25 +133,37 @@ public class StudentView {
             ConsoleUI.sectionHeader("Student View");
         }
 
-        int idx = 1;
+        System.out.println();
+        System.out.printf(
+            "%-4s %-10s %-25s %-15s %-15s %-15s %-10s %-10s %-15s%n",
+            "S/N", "ID", "Title", "Company", "Major", "Level", "Slots", "Status", "Visible"
+        );
+        System.out.println("--------------------------------------------------------------------------------------------------------------------------");
+
+        int i = 1;
         for (InternshipOpportunity o : available) {
-            System.out.println("------------------------------------------------------------");
-            System.out.printf("(%d) id           : %s%n", idx++, o.getId());
-            System.out.println("     title        : " + o.getTitle());
-            System.out.println("     company      : " + o.getCompanyName());
-            System.out.println("     description  : " + o.getDescription());
-            System.out.println("     preferred major : " + o.getPreferredMajor());
-            System.out.println("     level        : " + o.getLevel());
-            System.out.println("     open date    : " + o.getOpenDate());
-            System.out.println("     close date   : " + o.getCloseDate());
-            System.out.printf("     slots        : %d/%d%n", o.getConfirmedSlots(), o.getSlots());
-            System.out.println("     status       : " + o.getStatus());
-            System.out.println("     visibility   : " + (o.isVisible() ? "visible" : "hidden"));
-            System.out.println("------------------------------------------------------------\n");
+            String slotsStr = String.format("%d/%d", o.getConfirmedSlots(), o.getSlots());
+
+            System.out.printf(
+                "%-4d %-10s %-25s %-15s %-15s %-15s %-10s %-10s %-15s%n",
+                i++,
+                o.getId(),
+                o.getTitle(),
+                o.getCompanyName(),
+                String.valueOf(o.getPreferredMajor()),
+                String.valueOf(o.getLevel()),
+                slotsStr,
+                String.valueOf(o.getStatus()),
+                o.isVisible() ? "yes" : "no"
+            );
         }
 
+        System.out.println("\n(Total: " + available.size() + " internship opportunities available)");
         System.out.println();
- 
+
+        System.out.print("Press enter key to continue... ");
+        sc.nextLine();
+
         ConsoleUI.sectionHeader("Student View");
     }
 
