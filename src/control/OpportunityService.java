@@ -10,6 +10,7 @@ import entity.CompanyRepresentative;
 import entity.InternshipOpportunity;
 import enumerations.Major;
 import enumerations.OpportunityStatus;
+import ui.ConsoleUI;
 
 public class OpportunityService {
 
@@ -72,17 +73,23 @@ public class OpportunityService {
         System.out.println("✓ opportunity updated and sent for re-approval.");
     }
 
-    /** delete an opportunity (only by the owning rep) */
+    /** delete an opportunity (only by the owning rep and only if status is pending) */
     public void deleteOpportunity(CompanyRepresentative rep, String id) {
         InternshipOpportunity existing = findById(id);
+
         if (existing == null) {
-            System.out.println("✗ opportunity not found.");
+            System.out.println("✗ Opportunity not found.");
             return;
         }
         if (!rep.equals(existing.getRepInCharge())) {
-            System.out.println("✗ you may only delete your own opportunities.");
+            System.out.println("✗ You may only delete your own opportunities.");
             return;
         }
+        if (existing.getStatus() != OpportunityStatus.PENDING) {
+            System.out.println("✗ You can only delete opportunities that are still pending approval.");
+            return;
+        }
+
         opportunities.remove(existing);
         save();
         System.out.println("✓ opportunity deleted.");

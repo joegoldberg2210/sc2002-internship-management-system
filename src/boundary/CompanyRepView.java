@@ -209,7 +209,7 @@ public class CompanyRepView {
         boolean continueEditing = true;
 
         while (continueEditing) {
-            ConsoleUI.sectionHeader("Edit Existing Internship Opportunity");
+            ConsoleUI.sectionHeader("Company Representative View > Edit Existing Internship Opportunity");
 
             System.out.print("Enter Opportunity ID to edit: ");
             String id = sc.nextLine().trim();
@@ -296,10 +296,35 @@ public class CompanyRepView {
     }
 
     private void deleteOpportunity() {
-        ConsoleUI.sectionHeader("Delete Opportunity");
-        System.out.print("Enter Opportunity ID: ");
-        String id = sc.nextLine().trim();
-        opportunityService.deleteOpportunity(rep, id);
+        boolean continueDeleting = true;
+
+        while (continueDeleting) {
+            ConsoleUI.sectionHeader("Company Representative View > Delete Internship Opportunity");
+
+            System.out.print("Enter opportunity id to delete: ");
+            String raw = sc.nextLine();
+            String id = (raw == null) ? "" : raw.trim();
+
+            if (id.isEmpty()) {
+                System.out.println("✗ Invalid ID.");
+            } else {
+                InternshipOpportunity existing = opportunityService.findById(id);
+
+                if (existing == null) {
+                    System.out.println("✗ Opportunity not found.");
+                } else if (!rep.equals(existing.getRepInCharge())) {
+                    System.out.println("✗ You may only delete your own opportunities.");
+                } else if (existing.getStatus() != OpportunityStatus.PENDING) {
+                    System.out.println("✗ You can only delete opportunities that are still pending approval.");
+                } else {
+                    opportunityService.deleteOpportunity(rep, id);
+                }
+            }
+
+            System.out.print("\nDo you want to delete another internship opportunity? (y/n): ");
+            String again = sc.nextLine().trim().toUpperCase();
+            continueDeleting = again.equals("Y");
+        }
     }
 
     private void toggleVisibility() {
