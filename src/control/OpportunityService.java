@@ -77,19 +77,6 @@ public class OpportunityService {
     public void deleteOpportunity(CompanyRepresentative rep, String id) {
         InternshipOpportunity existing = findById(id);
 
-        if (existing == null) {
-            System.out.println("✗ Opportunity not found.");
-            return;
-        }
-        if (!rep.equals(existing.getRepInCharge())) {
-            System.out.println("✗ You may only delete your own opportunities.");
-            return;
-        }
-        if (existing.getStatus() != OpportunityStatus.PENDING) {
-            System.out.println("✗ You can only delete opportunities that are still pending approval.");
-            return;
-        }
-
         opportunities.remove(existing);
         save();
         System.out.println("✓ opportunity deleted.");
