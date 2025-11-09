@@ -1,4 +1,5 @@
 package entity;
+import config.DomainRules;
 
 import enumerations.ApplicationStatus;
 import enumerations.InternshipLevel;
@@ -35,12 +36,12 @@ public class Student extends User {
         return activeApplicationsCount() < 3;
     }
 
-    /** Business rule: Y1–2 can apply only BASIC; Y3+ can apply to any level; opp must be open for this student. */
+    /** Business rule: capacity + policy-driven eligibility + opportunity open window. */
     public boolean canApplyTo(InternshipOpportunity opp) {
         if (!hasCapacityForNewApplication()) return false;
-        if (!opp.isOpenFor(this)) return false;
-        return yearOfStudy > 2 || opp.getLevel() == InternshipLevel.BASIC;
-    }
+        if (!opp.isOpenFor(this)) return false; // this checks status/visibility/window/vacancy
+        return config.DomainRules.eligibility().canApply(this, opp);
+}
 
     /** Students can view visible & eligible opportunities, or any opp they already applied to. */
     public boolean canView(InternshipOpportunity opp) {
@@ -55,6 +56,13 @@ public class Student extends User {
         for (Application a : applications) if (a.getStatus() == ApplicationStatus.PENDING) c++;
         return c;
     }
+
+    public Application createApplication(String id, InternshipOpportunity opp) {
+    if (!canApplyTo(opp)) throw new IllegalStateException("Not eligible / no capacity");
+    Application a = new Application(id, this, opp);
+    this._addApplication(a);
+    return a;
+}
 
     /* package-private helpers for services */
     void _addApplication(Application a) { applications.add(a); }
