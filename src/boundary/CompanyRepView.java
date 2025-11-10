@@ -21,18 +21,18 @@ public class CompanyRepView {
     private final Scanner sc;
     private final CompanyRepresentative rep;
     private final OpportunityService opportunityService;
-    private final ApplicationService appService;
+    private final ApplicationService applicationService;
     private final List<User> users;
     private final DataLoader loader;
 
     // constructor 
-    public CompanyRepView(Scanner sc, CompanyRepresentative rep, List<User> users, DataLoader loader, OpportunityService opportunityService, ApplicationService appService) {
+    public CompanyRepView(Scanner sc, CompanyRepresentative rep, List<User> users, DataLoader loader, OpportunityService opportunityService, ApplicationService applicationService) {
         this.sc = sc;
         this.rep = rep;
         this.users = users;
         this.loader = loader;
         this.opportunityService = opportunityService;
-        this.appService = appService;
+        this.applicationService = applicationService;
     }
 
     public void run() {
@@ -150,7 +150,7 @@ public class CompanyRepView {
         ConsoleUI.sectionHeader("company representative view > review applications");
         System.out.println();
 
-        List<Application> myApps = appService.getApplicationsByRepresentative(rep);
+        List<Application> myApps = applicationService.getApplicationsByRepresentative(rep);
 
         if (myApps.isEmpty()) {
             System.out.println("✗ no applications to review.\n");
@@ -218,8 +218,8 @@ public class CompanyRepView {
         String choice = sc.nextLine().trim();
 
         switch (choice) {
-            case "1" -> appService.decideApplication(rep, sel, true);
-            case "2" -> appService.decideApplication(rep, sel, false);
+            case "1" -> applicationService.decideApplication(rep, sel, true);
+            case "2" -> applicationService.decideApplication(rep, sel, false);
             case "0" -> { /* back */ }
             default -> System.out.println("✗ invalid choice.");
         }

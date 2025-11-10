@@ -44,7 +44,8 @@ public class StudentView {
                 case "2" -> viewAvailableInternships();
                 case "3" -> applyForInternship();
                 case "4" -> viewApplications();
-                case "5" -> withdrawApplication();
+                case "5" -> manageInternshipOffers();
+                case "6" -> withdrawApplication();
                 case "logout" -> {
                     System.out.println("\n✓ You have logged out of your account.\n");
                     return;
@@ -56,10 +57,11 @@ public class StudentView {
 
     private void showMenu() {
         System.out.println("(1) Manage Account");
-        System.out.println("(2) View Available Internships");
+        System.out.println("(2) View Available Internship(s)");
         System.out.println("(3) Apply New Internship");
         System.out.println("(4) View My Internship Application(s)");
-        System.out.println("(5) Withdraw Internship Application");
+        System.out.println("(5) Manage Internship Offer(s)");
+        System.out.println("(6) Withdraw Internship Application");
         System.out.println();
         System.out.println("→ Type 'logout' here to logout");
         System.out.println();
@@ -121,7 +123,7 @@ public class StudentView {
     }
 
     private void viewAvailableInternships() {
-        ConsoleUI.sectionHeader("Student View > View Available Internships");
+        ConsoleUI.sectionHeader("Student View > View Available Internship(s)");
 
         List<InternshipOpportunity> available = opportunityService.getAllOpportunities()
             .stream()
@@ -277,7 +279,88 @@ public class StudentView {
         ConsoleUI.sectionHeader("Student View");
     }
 
+    private void manageInternshipOffers() {
+        ConsoleUI.sectionHeader("Student View > Manage Internship Offer(s)");
+
+        List<Application> offers = applicationService.getSuccessfulOffersForStudent(student);
+
+        if (offers.isEmpty()) {
+            System.out.println("✗ You currently have no internship offers.\n");
+            System.out.print("Press enter to return... ");
+            sc.nextLine();
+            ConsoleUI.sectionHeader("Student View");
+        }
+
+        boolean alreadyAccepted = offers.stream().anyMatch(Application::isAccepted);
+        if (alreadyAccepted) {
+            System.out.println("✓ You have already accepted an internship offer. You cannot accept or reject other internship offer(s).\n");
+            System.out.println();
+            System.out.print("Press enter to return... ");
+            sc.nextLine();
+            return;
+        }
+
+        // show all offers first
+        System.out.printf("%-4s %-18s %-25s %-18s %-20s%n",
+        "S/N", "Application ID", "Internship Title", "Company", "Application Status");
+        System.out.println("---------------------------------------------------------------------------------------------------");
+
+        int i = 1;
+        for (Application a : offers) {
+            System.out.printf("%-4d %-18s %-25s %-18s %-20s%n",
+                    i++,   
+                    a.getId(),
+                    a.getOpportunity().getTitle(),
+                    a.getOpportunity().getCompanyName(),
+                    a.getStatus());
+        }
+
+        // ask if student wants to act
+        System.out.print("\nDo you want to accept/reject any internship offer(s)? (y/n): ");
+        String response = sc.nextLine().trim().toUpperCase();
+
+        if (!response.equals("Y")) {
+            ConsoleUI.sectionHeader("Student View");
+        }
+
+        // prompt for specific application ID
+        System.out.print("\nEnter Application ID: ");
+        String appId = sc.nextLine().trim();
+
+        Application selected = offers.stream()
+                .filter(a -> a.getId().equalsIgnoreCase(appId))
+                .findFirst()
+                .orElse(null);
+
+        if (selected == null) {
+            System.out.println("✗ Invalid Application ID. please check and try again.");
+            System.out.println();
+            System.out.print("Press enter to return... ");
+            sc.nextLine();
+            ConsoleUI.sectionHeader("Student View");
+        }
+
+        // choose accept or reject
+        System.out.println("\n(1) Accept Offer");
+        System.out.println("(2) Reject Offer");
+        System.out.println("(0) Back to Student View");
+        System.out.println();
+        System.out.print("Enter choice: ");
+        String choice = sc.nextLine().trim();
+
+        switch (choice) {
+            case "1" -> applicationService.acceptOffer(student, selected);
+            case "2" -> applicationService.rejectOffer(student, selected);
+            case "0" -> { ConsoleUI.sectionHeader("Student View"); }
+            default -> System.out.println("✗ Invalid choice.");
+        }
+
+        System.out.print("\nPress enter to return... ");
+        sc.nextLine();
+        ConsoleUI.sectionHeader("Student View");
+    }
+
     private void withdrawApplication() {
-        ConsoleUI.sectionHeader("Student View > Withdraw Internship Application");
+        ConsoleUI.sectionHeader("Student View > Withdraw Internship Application(s)");
     }
 }

@@ -196,6 +196,10 @@ public class InternshipOpportunity implements Serializable {
         this.repInCharge = repInCharge;
     }
 
+    public void setConfirmedSlots(int confirmedSlots) {
+        this.confirmedSlots = confirmedSlots;
+    }
+
     // === toString() ===
 
     /**

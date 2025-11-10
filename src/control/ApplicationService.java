@@ -68,6 +68,13 @@ public class ApplicationService {
         loader.saveApplications(applications);
     }
 
+    public List<Application> getSuccessfulOffersForStudent(Student student) {
+        return applications.stream()
+                .filter(a -> a.getStudent().equals(student))
+                .filter(a -> a.getStatus() == ApplicationStatus.SUCCESSFUL)
+                .collect(Collectors.toList());
+    }
+
     
     /** list applications tied to opportunities owned by this rep */
     public List<Application> getApplicationsByRepresentative(CompanyRepresentative rep) {
@@ -87,68 +94,104 @@ public class ApplicationService {
             return;
         }
 
-        // typical rule: only allow offers on approved opportunities
-        if (approve && opp.getStatus() != OpportunityStatus.APPROVED) {
-            System.out.println("✗ opportunity is not approved; cannot issue offers.");
-            return;
+        // only allow offers on approved & not-filled opportunities
+        if (approve) {
+            if (opp.getStatus() != OpportunityStatus.APPROVED) {
+                System.out.println("✗ opportunity is not approved; cannot issue offers.");
+                return;
+            }
+            if (opp.getConfirmedSlots() >= opp.getSlots()) {
+                System.out.println("✗ opportunity is already full; cannot issue offers.");
+                return;
+            }
         }
 
-        // do not allow decisions on already decided applications
+        // only pending applications can be decided
         if (app.getStatus() != ApplicationStatus.PENDING) {
             System.out.println("✗ this application has already been decided (" + app.getStatus() + ").");
             return;
         }
 
-        // make the decision via your existing method
+        // make the decision via your existing api
         app.markDecision(approve);
 
-        // note: we DO NOT change confirmedSlots here.
-        // confirmedSlots should rise only when the student explicitly accepts (markAccepted).
-        System.out.println(approve ? "✓ application marked as successful (offer made)."
-                                   : "✓ application marked as unsuccessful.");
+        // do NOT change confirmedSlots here; only when student accepts
+        System.out.println(approve
+                ? "✓ application marked as successful (offer made)."
+                : "✓ application marked as unsuccessful.");
         save();
     }
 
     /** student accepts an offer; uses markAccepted(); also updates opportunity capacity */
     public void acceptOffer(Student student, Application app) {
-        if (!student.equals(app.getStudent())) {
-            System.out.println("✗ you can only accept your own application.");
-            return;
-        }
-
-        // must be a successful offer first
         if (app.getStatus() != ApplicationStatus.SUCCESSFUL) {
-            System.out.println("✗ cannot accept — application is not successful.");
+            System.out.println("✗ Cannot accept — Application is not successful.");
             return;
         }
 
-        // enforce: a student may accept only one offer
+        // ensure student hasn’t accepted another
         boolean alreadyAccepted = applications.stream()
                 .anyMatch(a -> a.getStudent().equals(student) && a.isAccepted());
         if (alreadyAccepted) {
-            System.out.println("✗ you have already accepted another offer.");
+            System.out.println("✗ You have already accepted an internship offer. You cannot accept or reject other internship offer(s).");
             return;
         }
 
         InternshipOpportunity opp = app.getOpportunity();
 
-        // must have capacity remaining
         if (opp.getConfirmedSlots() >= opp.getSlots()) {
-            System.out.println("✗ no remaining slots available for this opportunity.");
+            System.out.println("✗ No remaining slots available for this opportunity.");
             return;
         }
 
-        // ok: accept and update capacity
+        // accept this offer
         app.markAccepted();
-        opp.setSlots(opp.getConfirmedSlots() + 1);
+        opp.setConfirmedSlots(opp.getConfirmedSlots() + 1);
+        opp.setSlots(opp.getSlots() - 1); // reduce available slots by 1
 
-        // if filled by this acceptance → flip status + visibility off
+        // mark all other offers/applications by this student as withdrawn
+        withdrawOtherOffers(student, app);
+
+        // if filled → mark opportunity as filled and hide
         if (opp.getConfirmedSlots() >= opp.getSlots()) {
             opp.setStatus(OpportunityStatus.FILLED);
             opp.setVisibility(false);
         }
 
-        System.out.println("✓ offer accepted.");
+        System.out.println();
+        System.out.println("✓ Offer accepted. All other active applications withdrawn automatically.");
         save();
+    }
+
+    private void withdrawOtherOffers(Student student, Application acceptedApp) {
+        for (Application a : applications) {
+            if (a.getStudent().equals(student) && !a.equals(acceptedApp)) {
+                if (a.getStatus() == ApplicationStatus.PENDING || 
+                    a.getStatus() == ApplicationStatus.SUCCESSFUL) {
+                    a.markWithdrawn();
+                }
+            }
+        }
+    }
+
+    /** student rejects / declines an internship offer */
+    public void rejectOffer(Student student, Application app) {
+
+        // must be a valid offer (successful but not yet accepted)
+        if (app.getStatus() != ApplicationStatus.SUCCESSFUL) {
+            System.out.println("✗ cannot reject — this application is not a valid offer.");
+            return;
+        }
+
+        if (app.isAccepted()) {
+            System.out.println("✗ cannot reject — you have already accepted this offer.");
+            return;
+        }
+
+        // mark as withdrawn using your existing function
+        app.markWithdrawn();
+
+        System.out.println("✓ offer rejected successfully.");
+        save(); // persist changes if needed
     }
 }
