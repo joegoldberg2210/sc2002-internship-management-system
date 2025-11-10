@@ -66,7 +66,7 @@ public class IPMSApp {
                     // the view should just `return;` (not call run() again).
                     new StudentView(sc, s, users, loader, oppService, appService).run();
                 } else if (logged instanceof CompanyRepresentative cr) {
-                    new CompanyRepView(sc, cr, users, loader, oppService).run();
+                    new CompanyRepView(sc, cr, users, loader, oppService, appService).run();
                 } else if (logged instanceof CareerCenterStaff staff) {
                     new CareerCenterStaffView(sc, staff, users, loader, approval, oppService).run();
                 }

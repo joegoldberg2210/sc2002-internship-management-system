@@ -5,30 +5,34 @@ import java.util.List;
 import java.util.Scanner;
 import java.util.UUID;
 
+import control.ApplicationService;
 import control.OpportunityService;
 import control.DataLoader;
 import entity.CompanyRepresentative;
 import entity.InternshipOpportunity;
 import entity.User;
+import entity.Application;
 import enumerations.InternshipLevel;
 import enumerations.Major;
 import enumerations.OpportunityStatus;
-import ui.ConsoleUI;
+import ui.ConsoleUI; 
 
 public class CompanyRepView {
     private final Scanner sc;
     private final CompanyRepresentative rep;
     private final OpportunityService opportunityService;
+    private final ApplicationService appService;
     private final List<User> users;
     private final DataLoader loader;
 
     // constructor 
-    public CompanyRepView(Scanner sc, CompanyRepresentative rep, List<User> users, DataLoader loader, OpportunityService opportunityService) {
+    public CompanyRepView(Scanner sc, CompanyRepresentative rep, List<User> users, DataLoader loader, OpportunityService opportunityService, ApplicationService appService) {
         this.sc = sc;
         this.rep = rep;
         this.users = users;
         this.loader = loader;
         this.opportunityService = opportunityService;
+        this.appService = appService;
     }
 
     public void run() {
@@ -143,8 +147,85 @@ public class CompanyRepView {
     }
 
     private void reviewApplications() {
-        ConsoleUI.sectionHeader("Company Representative View > Review Applications");
+        ConsoleUI.sectionHeader("company representative view > review applications");
         System.out.println();
+
+        List<Application> myApps = appService.getApplicationsByRepresentative(rep);
+
+        if (myApps.isEmpty()) {
+            System.out.println("✗ no applications to review.\n");
+            System.out.print("press enter to return... ");
+            sc.nextLine();
+            return;
+        }
+
+        // table header
+        System.out.printf(
+            "%-4s %-14s %-14s %-16s %-14s %-12s %-10s%n",
+            "no.", "app id", "student id", "opportunity id", "status", "applied", "accepted"
+        );
+        System.out.println("------------------------------------------------------------------------------------");
+
+        int i = 1;
+        for (Application a : myApps) {
+            System.out.printf(
+                "%-4d %-14s %-14s %-16s %-14s %-12s %-10s%n",
+                i++,
+                a.getId(),
+                a.getStudent().getId(),
+                a.getOpportunity().getId(),
+                a.getStatus(),
+                a.getAppliedAt(),
+                a.isAccepted() ? "yes" : "no"
+            );
+        }
+
+        System.out.println("\n(total: " + myApps.size() + " application(s))\n");
+
+        System.out.print("select # to review (or 0 to go back): ");
+        int idx = readIndex(myApps.size());
+        if (idx == 0) return;
+
+        Application sel = myApps.get(idx - 1);
+        InternshipOpportunity opp = sel.getOpportunity();
+
+        // detail block
+        System.out.println("\n────────────────────────────────────────────────────────────");
+        System.out.println("                    application details                      ");
+        System.out.println("────────────────────────────────────────────────────────────");
+        System.out.printf("%-18s: %s%n", "application id", sel.getId());
+        System.out.printf("%-18s: %s%n", "student id", sel.getStudent().getId());
+        System.out.printf("%-18s: %s%n", "opportunity id", opp.getId());
+        System.out.printf("%-18s: %s%n", "internship", opp.getTitle());
+        System.out.printf("%-18s: %s%n", "company", opp.getCompanyName());
+        System.out.printf("%-18s: %s%n", "status", sel.getStatus());
+        System.out.printf("%-18s: %s%n", "applied at", sel.getAppliedAt());
+        System.out.printf("%-18s: %s%n", "accepted", sel.isAccepted() ? "yes" : "no");
+        System.out.println("────────────────────────────────────────────────────────────\n");
+
+        // only pending apps are actionable
+        if (!sel.isActive()) {
+            System.out.println("this application has already been decided (" + sel.getStatus() + ").");
+            System.out.print("press enter to return... ");
+            sc.nextLine();
+            return;
+        }
+
+        System.out.println("(1) approve (mark successful)");
+        System.out.println("(2) reject (mark unsuccessful)");
+        System.out.println("(0) back");
+        System.out.print("enter choice: ");
+        String choice = sc.nextLine().trim();
+
+        switch (choice) {
+            case "1" -> appService.decideApplication(rep, sel, true);
+            case "2" -> appService.decideApplication(rep, sel, false);
+            case "0" -> { /* back */ }
+            default -> System.out.println("✗ invalid choice.");
+        }
+
+        System.out.print("\npress enter to return... ");
+        sc.nextLine();
     }
 
     private void createOpportunity() {
@@ -424,5 +505,16 @@ public class CompanyRepView {
         }
 
         return levels[choice - 1];
+    }
+
+     private int readIndex(int max) {
+        while (true) {
+            String s = sc.nextLine().trim();
+            if (s.matches("\\d+")) {
+                int v = Integer.parseInt(s);
+                if (v >= 0 && v <= max) return v;
+            }
+            System.out.print("Enter 0-" + max + ": ");
+        }
     }
 }

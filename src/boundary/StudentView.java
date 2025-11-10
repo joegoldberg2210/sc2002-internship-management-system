@@ -168,7 +168,7 @@ public class StudentView {
     }
 
     private void viewApplications() {
-        ConsoleUI.sectionHeader("Student view > View My Internship Application(s)");
+        ConsoleUI.sectionHeader("Student View > View My Internship Application(s)");
 
         List<Application> myApps = applicationService.getApplicationsForStudent(student);
 
@@ -235,7 +235,7 @@ public class StudentView {
         System.out.println();
 
         // let student choose
-        System.out.print("Enter the number of the internship to apply: ");
+        System.out.print("Enter internship # to apply: ");
         int choice = -1;
         while (choice < 0 || choice > available.size()) {
             try {

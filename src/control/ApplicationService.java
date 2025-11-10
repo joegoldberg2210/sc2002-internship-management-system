@@ -1,9 +1,14 @@
 package control;
 
 import java.util.*;
+import java.util.stream.Collectors;
+
 import entity.Application;
+import entity.CompanyRepresentative;
 import entity.InternshipOpportunity;
 import entity.Student;
+import enumerations.ApplicationStatus;
+import enumerations.OpportunityStatus;
 
 public class ApplicationService {
     private static final int MAX_ACTIVE_APPS = 3;
@@ -61,5 +66,89 @@ public class ApplicationService {
 
     private void save() {
         loader.saveApplications(applications);
+    }
+
+    
+    /** list applications tied to opportunities owned by this rep */
+    public List<Application> getApplicationsByRepresentative(CompanyRepresentative rep) {
+        return applications.stream()
+                .filter(a -> a.getOpportunity() != null
+                        && a.getOpportunity().getRepInCharge() != null
+                        && a.getOpportunity().getRepInCharge().equals(rep))
+                .collect(Collectors.toList());
+    }
+
+    /** rep reviews an application → approve (offer) or reject; uses markDecision(...) */
+    public void decideApplication(CompanyRepresentative rep, Application app, boolean approve) {
+        InternshipOpportunity opp = app.getOpportunity();
+
+        if (!rep.equals(opp.getRepInCharge())) {
+            System.out.println("✗ you may only review applications for your own opportunities.");
+            return;
+        }
+
+        // typical rule: only allow offers on approved opportunities
+        if (approve && opp.getStatus() != OpportunityStatus.APPROVED) {
+            System.out.println("✗ opportunity is not approved; cannot issue offers.");
+            return;
+        }
+
+        // do not allow decisions on already decided applications
+        if (app.getStatus() != ApplicationStatus.PENDING) {
+            System.out.println("✗ this application has already been decided (" + app.getStatus() + ").");
+            return;
+        }
+
+        // make the decision via your existing method
+        app.markDecision(approve);
+
+        // note: we DO NOT change confirmedSlots here.
+        // confirmedSlots should rise only when the student explicitly accepts (markAccepted).
+        System.out.println(approve ? "✓ application marked as successful (offer made)."
+                                   : "✓ application marked as unsuccessful.");
+        save();
+    }
+
+    /** student accepts an offer; uses markAccepted(); also updates opportunity capacity */
+    public void acceptOffer(Student student, Application app) {
+        if (!student.equals(app.getStudent())) {
+            System.out.println("✗ you can only accept your own application.");
+            return;
+        }
+
+        // must be a successful offer first
+        if (app.getStatus() != ApplicationStatus.SUCCESSFUL) {
+            System.out.println("✗ cannot accept — application is not successful.");
+            return;
+        }
+
+        // enforce: a student may accept only one offer
+        boolean alreadyAccepted = applications.stream()
+                .anyMatch(a -> a.getStudent().equals(student) && a.isAccepted());
+        if (alreadyAccepted) {
+            System.out.println("✗ you have already accepted another offer.");
+            return;
+        }
+
+        InternshipOpportunity opp = app.getOpportunity();
+
+        // must have capacity remaining
+        if (opp.getConfirmedSlots() >= opp.getSlots()) {
+            System.out.println("✗ no remaining slots available for this opportunity.");
+            return;
+        }
+
+        // ok: accept and update capacity
+        app.markAccepted();
+        opp.setSlots(opp.getConfirmedSlots() + 1);
+
+        // if filled by this acceptance → flip status + visibility off
+        if (opp.getConfirmedSlots() >= opp.getSlots()) {
+            opp.setStatus(OpportunityStatus.FILLED);
+            opp.setVisibility(false);
+        }
+
+        System.out.println("✓ offer accepted.");
+        save();
     }
 }
