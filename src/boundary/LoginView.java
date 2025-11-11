@@ -76,7 +76,8 @@ public class LoginView {
             if (input.equals("#") || input.matches("[1-2]")) {
                 return input;
             }
-            System.out.print("Invalid choice. Enter choice: ");
+            System.out.println("Invalid choice.");
+            System.out.print("Enter choice: ");
         }
     }
 
@@ -92,7 +93,8 @@ public class LoginView {
         while (true) {
             String input = sc.nextLine().trim();
             if (input.matches("[1-3]")) return Integer.parseInt(input);
-            System.out.print("Invalid choice. Enter choice: ");
+            System.out.println("Invalid choice.");
+            System.out.print("Enter choice: ");
         }
     }
 

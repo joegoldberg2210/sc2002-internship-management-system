@@ -33,7 +33,7 @@ public class IPMSApp {
         ApplicationService appService = new ApplicationService(applications, loader);
 
         if (users.isEmpty()) {
-            System.out.println("no users loaded. please check your serialized/users.ser or csv seed.");
+            System.out.println("no users loaded. please check your serialized/users.ser file.");
             return;
         } else {
             System.out.println(users.size() + " users loaded.");
