@@ -1,8 +1,6 @@
 package entity;
 
 import enumerations.ApplicationStatus;
-import enumerations.OfferStatus;
-
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.Objects;
@@ -18,7 +16,6 @@ public class Application implements Serializable {
     private final LocalDate appliedAt;
     private LocalDate decisionAt;
     private boolean accepted;
-    private OfferStatus offerStatus = OfferStatus.PENDING;
 
     public Application(String id, Student student, InternshipOpportunity opportunity) {
         this.id = Objects.requireNonNull(id, "id must not be null");
@@ -26,25 +23,14 @@ public class Application implements Serializable {
         this.opportunity = Objects.requireNonNull(opportunity, "opportunity must not be null");
         this.appliedAt = LocalDate.now();
         this.status = ApplicationStatus.PENDING;
-        this.offerStatus = OfferStatus.PENDING; 
         this.accepted = false;
-    }
-
-    public void setOfferStatus(OfferStatus offerStatus) {
-        this.offerStatus = offerStatus;
     }
 
     /** company rep approves or rejects an application. */
     public void markDecision(boolean approve) {
         this.status = approve ? ApplicationStatus.SUCCESSFUL : ApplicationStatus.UNSUCCESSFUL;
         this.decisionAt = LocalDate.now();
-
-        if (approve) {
-            this.offerStatus = OfferStatus.PENDING; // offer now available for student response
-        } else {
-            this.offerStatus = OfferStatus.NOT_APPLICABLE; // no offer for this application
-            this.accepted = false;
-        }
+        if (!approve) this.accepted = false;
     }
 
     /** student accepts a successful offer. */
@@ -88,10 +74,6 @@ public class Application implements Serializable {
     }
     public boolean isAccepted() { 
         return accepted; 
-    }
-
-    public OfferStatus getOfferStatus() {
-        return offerStatus;
     }
 
     // optional for easier debugging

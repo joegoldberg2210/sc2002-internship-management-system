@@ -8,7 +8,6 @@ import entity.CompanyRepresentative;
 import entity.InternshipOpportunity;
 import entity.Student;
 import enumerations.ApplicationStatus;
-import enumerations.OfferStatus;
 import enumerations.OpportunityStatus;
 
 public class ApplicationService {
@@ -86,46 +85,40 @@ public class ApplicationService {
                 .collect(Collectors.toList());
     }
 
-    /** rep reviews an application → approve (issue offer) or reject; uses markDecision(...) */
+    /** rep reviews an application → approve (offer) or reject; uses markDecision(...) */
     public void decideApplication(CompanyRepresentative rep, Application app, boolean approve) {
         InternshipOpportunity opp = app.getOpportunity();
 
-        // verify company rep owns this opportunity
         if (!rep.equals(opp.getRepInCharge())) {
-            System.out.println("✗ You may only review applications for your own opportunities.");
+            System.out.println("✗ you may only review applications for your own opportunities.");
             return;
         }
 
-        // only allow issuing offers if opportunity is approved and not full
+        // only allow offers on approved & not-filled opportunities
         if (approve) {
             if (opp.getStatus() != OpportunityStatus.APPROVED) {
-                System.out.println("✗ Opportunity is not approved; cannot issue offers.");
+                System.out.println("✗ opportunity is not approved; cannot issue offers.");
                 return;
             }
             if (opp.getConfirmedSlots() >= opp.getSlots()) {
-                System.out.println("✗ Opportunity is already full; cannot issue offers.");
+                System.out.println("✗ opportunity is already full; cannot issue offers.");
                 return;
             }
         }
 
         // only pending applications can be decided
         if (app.getStatus() != ApplicationStatus.PENDING) {
-            System.out.println("✗ This application has already been decided (" + app.getStatus() + ").");
+            System.out.println("✗ this application has already been decided (" + app.getStatus() + ").");
             return;
         }
 
-        // make the decision (this already sets ApplicationStatus and OfferStatus correctly)
+        // make the decision via your existing api
         app.markDecision(approve);
 
-        if (approve) {
-            // successful: offer created for student → offerStatus = PENDING
-            System.out.println("✓ Application marked as successful. Offer sent to student.");
-        } else {
-            // unsuccessful: no offer for student → offerStatus = NOT_APPLICABLE
-            System.out.println("✓ Application marked as unsuccessful.");
-        }
-
-        // confirmedSlots should increase only after student accepts
+        // do NOT change confirmedSlots here; only when student accepts
+        System.out.println(approve
+                ? "✓ application marked as successful (offer made)."
+                : "✓ application marked as unsuccessful.");
         save();
     }
 
@@ -152,7 +145,6 @@ public class ApplicationService {
         }
 
         // accept this offer
-        app.setOfferStatus(OfferStatus.ACCEPTED);
         app.markAccepted();
         opp.setConfirmedSlots(opp.getConfirmedSlots() + 1);
         opp.setSlots(opp.getSlots() - 1); // reduce available slots by 1
@@ -196,7 +188,6 @@ public class ApplicationService {
             return;
         }
 
-        app.setOfferStatus(OfferStatus.REJECTED);
         // mark as withdrawn using your existing function
         app.markWithdrawn();
 
