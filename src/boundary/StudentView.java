@@ -87,10 +87,10 @@ public class StudentView {
 
     private void viewProfile() {
         ConsoleUI.sectionHeader("Student View > Manage Account > View Profile");
-        System.out.println("ID    : " + student.getId());
-        System.out.println("Name  : " + student.getName());
-        System.out.println("Year  : " + student.getYearOfStudy());
-        System.out.println("Major : " + student.getMajor());
+        System.out.println("Student ID    : " + student.getId());
+        System.out.println("Name          : " + student.getName());
+        System.out.println("Year          : " + student.getYearOfStudy());
+        System.out.println("Major         : " + student.getMajor());
         System.out.println();
         System.out.print("Press enter key to continue... ");
         sc.nextLine();
