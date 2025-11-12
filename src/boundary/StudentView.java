@@ -1,5 +1,7 @@
 package boundary;
 
+import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Scanner;
 import java.util.Set;
@@ -8,11 +10,12 @@ import java.util.stream.Collectors;
 import control.ApplicationService;
 import control.DataLoader;
 import control.OpportunityService;
+import entity.Application;
 import entity.InternshipOpportunity;
 import entity.Student;
-import entity.Application;
 import entity.User;
 import enumerations.ApplicationStatus;
+import enumerations.InternshipLevel;
 import ui.ConsoleUI;
 
 public class StudentView {
@@ -23,7 +26,18 @@ public class StudentView {
     private final OpportunityService opportunityService;
     private final ApplicationService applicationService;
 
-    public StudentView(Scanner sc, Student student, List<User> users, DataLoader loader, OpportunityService opportunityService, ApplicationService applicationService) {
+    // simple filter/sort state for the listing screen
+    private InternshipLevel filtLevel = null;   // null = any
+    private String          filtCompany = null; // null/empty = any (substring match)
+    // SLOTS, LEVEL, COMPANY, OPEN, CLOSE (default to SLOTS so “most available” first)
+    private String          sortKey = "SLOTS";
+
+    public StudentView(Scanner sc,
+                       Student student,
+                       List<User> users,
+                       DataLoader loader,
+                       OpportunityService opportunityService,
+                       ApplicationService applicationService) {
         this.sc = sc;
         this.student = student;
         this.users = users;
@@ -32,11 +46,12 @@ public class StudentView {
         this.applicationService = applicationService;
     }
 
+    // ─────────────────────────────────────────────────────────────────────
+
     public void run() {
         ConsoleUI.sectionHeader("Student View");
 
-        boolean running = true;
-        while (running) {
+        while (true) {
             showMenu();
             System.out.print("Enter choice: ");
             String choice = sc.nextLine().trim();
@@ -69,6 +84,8 @@ public class StudentView {
         System.out.println();
     }
 
+    // ───────────────────────── account ─────────────────────────
+
     private void manageAccount() {
         ConsoleUI.sectionHeader("Student View > Manage Account");
         System.out.println("(1) View Profile");
@@ -80,8 +97,8 @@ public class StudentView {
         switch (choice) {
             case "1" -> viewProfile();
             case "2" -> changePassword();
-            case "0" -> { ConsoleUI.sectionHeader("Student View"); }
-            default -> { ConsoleUI.sectionHeader("Student View"); }
+            case "0" -> ConsoleUI.sectionHeader("Student View");
+            default -> ConsoleUI.sectionHeader("Student View");
         }
     }
 
@@ -94,7 +111,6 @@ public class StudentView {
         System.out.println();
         System.out.print("Press enter key to continue... ");
         sc.nextLine();
-
         ConsoleUI.sectionHeader("Student View");
     }
 
@@ -115,12 +131,13 @@ public class StudentView {
         if (successful) {
             System.out.println("\n✓ Password changed successfully!");
             loader.saveUsers(users);
-            ConsoleUI.sectionHeader("Student View");
         } else {
             System.out.println("\n✗ Unable to change password. Please try again.");
-            ConsoleUI.sectionHeader("Student View");
         }
+        ConsoleUI.sectionHeader("Student View");
     }
+
+    // ───────────────────── applications listing ─────────────────────
 
     private void viewApplications() {
         ConsoleUI.sectionHeader("Student View > View My Submitted Applications");
@@ -137,8 +154,9 @@ public class StudentView {
 
         System.out.println();
         System.out.printf(
-            "%-4s %-15s %-15s %-25s %-20s %-20s %-20s %-20s %-15s%n",
-            "S/N", "Application ID", "Opportunity ID", "Internship Title", "Internship Level", "Company", "Preferred Major", "Status", "Applied Date"
+                "%-4s %-15s %-15s %-25s %-20s %-20s %-20s %-20s %-15s%n",
+                "S/N", "Application ID", "Opportunity ID", "Internship Title",
+                "Internship Level", "Company", "Preferred Major", "Status", "Applied Date"
         );
         System.out.println("----------------------------------------------------------------------------------------------------------------------------------------------------------------");
 
@@ -146,31 +164,30 @@ public class StudentView {
         for (Application app : myApps) {
             InternshipOpportunity opp = app.getOpportunity();
             System.out.printf(
-                "%-4d %-15s %-15s %-25s %-20s %-20s %-20s %-20s %-15s%n",
-                i++,
-                app.getId(),
-                opp.getId(),
-                opp.getTitle(),
-                String.valueOf(opp.getLevel()),
-                opp.getCompanyName(),
-                String.valueOf(opp.getPreferredMajor()),
-                String.valueOf(app.getStatus()),
-                String.valueOf(app.getAppliedAt())
+                    "%-4d %-15s %-15s %-25s %-20s %-20s %-20s %-20s %-15s%n",
+                    i++,
+                    app.getId(),
+                    opp.getId(),
+                    opp.getTitle(),
+                    String.valueOf(opp.getLevel()),
+                    opp.getCompanyName(),
+                    String.valueOf(opp.getPreferredMajor()),
+                    String.valueOf(app.getStatus()),
+                    String.valueOf(app.getAppliedAt())
             );
         }
         long activeCount = myApps.stream()
-                .filter(a -> a.getStatus() == ApplicationStatus.PENDING 
+                .filter(a -> a.getStatus() == ApplicationStatus.PENDING
                         || a.getStatus() == ApplicationStatus.SUCCESSFUL)
                 .count();
 
-        System.out.println();
         System.out.println("\n(Total number of active applications: " + activeCount + ")\n");
-
-        System.out.println();
         System.out.print("Press enter to return... ");
         sc.nextLine();
         ConsoleUI.sectionHeader("Student View");
     }
+
+    // ───────────────────── offers (accept / reject) ─────────────────────
 
     private void viewPendingInternshipOffers() {
         ConsoleUI.sectionHeader("Student View > View Pending Internship Offers");
@@ -188,21 +205,21 @@ public class StudentView {
         boolean alreadyAccepted = offers.stream().anyMatch(Application::isAccepted);
         if (alreadyAccepted) {
             System.out.println("✓ You have already accepted an internship offer. You cannot accept or reject other internship offers.\n");
-            System.out.println();
             System.out.print("Press enter to return... ");
             sc.nextLine();
+            ConsoleUI.sectionHeader("Student View");
             return;
         }
-        
-        // show all offers first
+
         System.out.printf("%-4s %-15s %-15s %-25s %-20s %-20s %-20s %-20s%n",
-        "S/N", "Application ID", "Opportunity ID",  "Internship Title", "Internship Level", "Company", "Preferred Major", "Application Status");
+                "S/N", "Application ID", "Opportunity ID", "Internship Title",
+                "Internship Level", "Company", "Preferred Major", "Application Status");
         System.out.println("---------------------------------------------------------------------------------------------------");
 
         int i = 1;
         for (Application a : offers) {
-            System.out.printf("%-4s %-15s %-15s %-25s %-20s %-20s %-20s %-20s%n",
-                    i++,   
+            System.out.printf("%-4d %-15s %-15s %-25s %-20s %-20s %-20s %-20s%n",
+                    i++,
                     a.getId(),
                     a.getOpportunity().getId(),
                     a.getOpportunity().getTitle(),
@@ -212,16 +229,13 @@ public class StudentView {
                     a.getStatus());
         }
 
-        // ask if student wants to act
         System.out.print("\nDo you want to accept/reject any internship opportunities? (y/n): ");
         String response = sc.nextLine().trim().toUpperCase();
-
         if (!response.equals("Y")) {
             ConsoleUI.sectionHeader("Student View");
             return;
         }
 
-        // prompt for specific application ID
         System.out.print("\nEnter Application ID: ");
         String appId = sc.nextLine().trim();
 
@@ -232,13 +246,12 @@ public class StudentView {
 
         if (selected == null) {
             System.out.println("✗ Invalid Application ID. Please check and try again.");
-            System.out.println();
             System.out.print("Press enter to return... ");
             sc.nextLine();
             ConsoleUI.sectionHeader("Student View");
+            return;
         }
 
-       // print application details
         System.out.println("\n────────────────────────────────────────────────────────────");
         System.out.println("                     APPLICATION DETAILS                   ");
         System.out.println("────────────────────────────────────────────────────────────");
@@ -251,42 +264,27 @@ public class StudentView {
         System.out.printf("%-18s: %s%n", "Status", selected.getStatus());
         System.out.println("────────────────────────────────────────────────────────────");
 
-        // choose accept or reject
-        // System.out.println("\n(1) Accept Offer");
-        // System.out.println("(2) Reject Offer");
-        // System.out.println("(0) Cancel");
-        // System.out.println();
-        // System.out.print("Enter choice: ");
-        // String choice = sc.nextLine().trim();
-
-        // switch (choice) {
-        //     case "1" -> applicationService.acceptOffer(student, selected);
-        //     case "2" -> applicationService.rejectOffer(student, selected);
-        //     case "0" -> { ConsoleUI.sectionHeader("Student View"); }
-        //     default -> System.out.println("✗ Invalid choice.");
-        // }
-
         System.out.print("\nAccept this internship opportunity? (y/n): ");
         String decision = sc.nextLine().trim().toLowerCase();
-
         boolean approve = decision.equals("y") || decision.equals("yes");
 
         if (approve) {
             applicationService.acceptOffer(student, selected);
         } else {
             applicationService.rejectOffer(student, selected);
-        } 
+        }
 
         System.out.print("\nPress enter to return... ");
         sc.nextLine();
         ConsoleUI.sectionHeader("Student View");
     }
 
+    // ───────────────────── withdrawals (request) ─────────────────────
+
     private void withdrawApplication() {
         ConsoleUI.sectionHeader("Student View > Withdraw Internship Applications");
 
         List<Application> myApps = applicationService.getApplicationsForStudent(student);
-        // only allow withdrawal for active applications (pending/successful)
         List<Application> eligible = myApps.stream()
                 .filter(a -> a.getStatus() == ApplicationStatus.PENDING
                         || a.getStatus() == ApplicationStatus.SUCCESSFUL)
@@ -295,19 +293,20 @@ public class StudentView {
 
         if (eligible.isEmpty()) {
             System.out.println("✗ You have no applications eligible for withdrawal.\n");
-            System.out.print("Press enter to return... "); sc.nextLine();
+            System.out.print("Press enter to return... ");
+            sc.nextLine();
             ConsoleUI.sectionHeader("Student View");
             return;
         }
 
         System.out.println();
-        System.out.printf("%-4s %-15s %-15s %-15s %-25s %-22s %-12s %-10s%n",
-                "S/N","Application ID","Opportunity ID","Opportunity ID","Internship Title","Company","Application Status");
-        System.out.println("----------------------------------------------------------------------------------------------------------------");
+        System.out.printf("%-4s %-15s %-15s %-25s %-22s %-20s%n",
+                "S/N","Application ID","Opportunity ID","Internship Title","Company","Application Status");
+        System.out.println("------------------------------------------------------------------------------------------------------");
         int i = 1;
         for (Application a : eligible) {
             InternshipOpportunity o = a.getOpportunity();
-            System.out.printf("%-4d %-15s %-15s -15s %-25s %-22s %-12s %-10s%n",
+            System.out.printf("%-4d %-15s %-15s %-25s %-22s %-20s%n",
                     i++,
                     a.getId(),
                     o.getId(),
@@ -330,7 +329,8 @@ public class StudentView {
                 .findFirst().orElse(null);
         if (selected == null) {
             System.out.println("✗ Invalid Application ID.\n");
-            System.out.print("Press enter to return... "); sc.nextLine();
+            System.out.print("Press enter to return... ");
+            sc.nextLine();
             ConsoleUI.sectionHeader("Student View");
             return;
         }
@@ -346,17 +346,20 @@ public class StudentView {
         }
 
         boolean ok = applicationService.submitWithdrawalRequest(student, selected);
+        if (ok) System.out.println("✓ Withdrawal request submitted.");
+        else    System.out.println("✗ Unable to submit withdrawal request.");
 
-        System.out.print("Press enter to return... "); sc.nextLine();
+        System.out.print("Press enter to return... ");
+        sc.nextLine();
         ConsoleUI.sectionHeader("Student View");
     }
+
+    // ───────────────────── accepted placement detail ─────────────────────
 
     private void viewAcceptedInternship() {
         ConsoleUI.sectionHeader("Student View > View Accepted Internship Placement");
 
         List<Application> myApps = applicationService.getApplicationsForStudent(student);
-
-        // accepted = company marked successful and student accepted it
         List<Application> accepted = myApps.stream()
                 .filter(a -> a.getStatus() == ApplicationStatus.SUCCESSFUL && a.isAccepted())
                 .collect(Collectors.toList());
@@ -369,14 +372,11 @@ public class StudentView {
             return;
         }
 
-        System.out.println("Below are the details of your accepted internship placement: ");
-        System.out.println();
-
+        System.out.println("Below are the details of your accepted internship placement:\n");
         for (Application a : accepted) {
             InternshipOpportunity o = a.getOpportunity();
-
             System.out.println("\n────────────────────────────────────────────────────────────");
-            System.out.println("               INTERNSHIP PLACEMENT DETAILS                   ");
+            System.out.println("               INTERNSHIP PLACEMENT DETAILS                 ");
             System.out.println("────────────────────────────────────────────────────────────");
             System.out.printf("%-18s: %s%n", "Application ID", a.getId());
             System.out.printf("%-18s: %s%n", "Opportunity ID", o.getId());
@@ -395,88 +395,186 @@ public class StudentView {
         ConsoleUI.sectionHeader("Student View");
     }
 
-    private void viewAndApplyInternships() {
-        ConsoleUI.sectionHeader("Student View > View & Apply internships");
+    // ───────────────────── listing + filter/sort/apply ─────────────────────
 
-        // fetch opportunities open to this student
-        List<InternshipOpportunity> available = opportunityService.getAllOpportunities().stream()
-                .filter(o -> o.isOpenFor(student))
+    private List<InternshipOpportunity> queryAvailableWithFilters(Set<String> appliedOppIds) {
+        Comparator<InternshipOpportunity> cmp = switch (sortKey) {
+            case "SLOTS"   -> Comparator.<InternshipOpportunity>comparingInt(
+                    o -> o.getSlots() - o.getConfirmedSlots()).reversed();
+            case "LEVEL"   -> Comparator.comparing(o -> o.getLevel().name());
+            case "COMPANY" -> Comparator.comparing(InternshipOpportunity::getCompanyName, String.CASE_INSENSITIVE_ORDER);
+            case "OPEN"    -> Comparator.comparing(InternshipOpportunity::getOpenDate);
+            case "CLOSE"   -> Comparator.comparing(InternshipOpportunity::getCloseDate);
+            default        -> Comparator.comparing(InternshipOpportunity::getTitle, String.CASE_INSENSITIVE_ORDER);
+        };
+
+        return opportunityService.getAllOpportunities().stream()
+                .filter(o -> o.isOpenFor(student))                         // eligibility
+                .filter(o -> !appliedOppIds.contains(o.getId()))           // hide pending/successful apps
+                .filter(o -> filtLevel == null || o.getLevel() == filtLevel)
+                .filter(o -> filtCompany == null || filtCompany.isBlank()
+                        || o.getCompanyName().toLowerCase().contains(filtCompany.toLowerCase()))
+                .sorted(cmp)
                 .collect(Collectors.toList());
+    }
 
-        // get student's applications and build a set of opportunity ids already applied to
-        // rule: hide anything the student has applied to (pending/successful/unsuccessful);
-        // allow re-apply only if they previously withdrew.
-        List<Application> myApps = applicationService.getApplicationsForStudent(student);
-        // remove only actively applied opportunities (pending or successful)
+    private void openFilterMenu() {
+        System.out.println();
+        System.out.println("filter available internships by:");
+        System.out.println("  (1) internship level");
+        System.out.println("  (2) company name");
+        System.out.println("  (9) clear filters");
+        System.out.println("  (enter) cancel");
+        System.out.print("choose: ");
+        String c = sc.nextLine().trim();
+        if (c.isEmpty()) return;
+
+        switch (c) {
+            case "1" -> {
+                System.out.print("enter level (basic/intermediate/advanced) or blank for any: ");
+                String v = sc.nextLine().trim();
+                filtLevel = v.isEmpty() ? null : InternshipLevel.valueOf(v.toUpperCase());
+            }
+            case "2" -> {
+                System.out.print("enter company keyword (blank for any): ");
+                String v = sc.nextLine().trim();
+                filtCompany = v.isEmpty() ? null : v;
+            }
+            case "9" -> {
+                filtLevel = null;
+                filtCompany = null;
+                System.out.println("✓ filters cleared.");
+            }
+            default -> System.out.println("✗ invalid choice.");
+        }
+    }
+
+    private void openSortMenu() {
+        System.out.println();
+        System.out.println("sort available internships by:");
+        System.out.println("  (1) available slots");
+        System.out.println("  (2) internship level");
+        System.out.println("  (3) company name");
+        System.out.println("  (4) open date");
+        System.out.println("  (5) close date");
+        System.out.println("  (enter) cancel");
+        System.out.print("choose: ");
+        String c = sc.nextLine().trim();
+        if (c.isEmpty()) return;
+
+        switch (c) {
+            case "1" -> sortKey = "SLOTS";
+            case "2" -> sortKey = "LEVEL";
+            case "3" -> sortKey = "COMPANY";
+            case "4" -> sortKey = "OPEN";
+            case "5" -> sortKey = "CLOSE";
+            default  -> System.out.println("✗ invalid choice.");
+        }
+        System.out.println("✓ sort updated.\n");
+    }
+
+    private void viewAndApplyInternships() {
+        ConsoleUI.sectionHeader("Student View > View & Apply Internships");
+
+        // hide opportunities already applied to (pending/successful)
         Set<String> appliedOppIds = applicationService.getApplicationsForStudent(student).stream()
                 .filter(a -> a.getStatus() == ApplicationStatus.PENDING
                         || a.getStatus() == ApplicationStatus.SUCCESSFUL)
                 .map(a -> a.getOpportunity().getId())
                 .collect(Collectors.toSet());
 
-        // show all others, including unsuccessful or withdrawn ones
-        available = available.stream()
-                .filter(o -> !appliedOppIds.contains(o.getId()))
-                .collect(Collectors.toList());
+        while (true) {
+            List<Application> myApps = applicationService.getApplicationsForStudent(student);
+            boolean hasAccepted = myApps.stream()
+                    .anyMatch(a -> a.getStatus() == ApplicationStatus.SUCCESSFUL && a.isAccepted());
 
-        if (available.isEmpty()) {
-            System.out.println("✗ No internship opportunities currently available for your profile.\n");
-            System.out.print("Press enter key to continue... "); sc.nextLine();
-            ConsoleUI.sectionHeader("Student View");
+            List<InternshipOpportunity> available = queryAvailableWithFilters(appliedOppIds);
+
+            // header line
+            System.out.println("(current filter: level=" + (filtLevel == null ? "any" : filtLevel)
+                    + ", company=" + (filtCompany == null || filtCompany.isBlank() ? "any" : ("\"" + filtCompany + "\""))
+                    + ", sort=" + sortKey.toLowerCase() + ")");
+            System.out.println();
+
+            // table
+            System.out.printf("%-4s %-15s %-25s %-20s %-20s %-20s %-15s %-15s%n",
+                    "S/N", "Opportunity ID", "Internship Title", "Internship Level",
+                    "Company", "Preferred Major", "Available Slots", "Close Date");
+            System.out.println("------------------------------------------------------------------------------------------------------------------------------------------------");
+            if (available.isEmpty()) {
+                System.out.println("✗ no internship opportunities match your current filters.\n");
+            } else {
+                int i = 1;
+                for (InternshipOpportunity o : available) {
+                    String slotsStr = String.format("%d/%d", o.getConfirmedSlots(), o.getSlots());
+                    System.out.printf("%-4d %-15s %-25s %-20s %-20s %-20s %-15s %-15s%n",
+                            i++,
+                            o.getId(),
+                            o.getTitle(),
+                            String.valueOf(o.getLevel()),
+                            o.getCompanyName(),
+                            String.valueOf(o.getPreferredMajor()),
+                            slotsStr,
+                            o.getCloseDate()
+                    );
+                }
+                System.out.println("\n(total: " + available.size() + " internship opportunities)\n");
+            }
+
+            // simple menu
+            System.out.println("(1) Apply for Internship");
+            System.out.println("(2) Filter Available Internships");
+            System.out.println("(3) Sort Available Internships");
+            System.out.println("(enter) back");
+            System.out.print("choose: ");
+            String cmd = sc.nextLine().trim();
+
+            if (cmd.isEmpty()) {
+                ConsoleUI.sectionHeader("Student View");
+                return;
+            } else if (cmd.equals("2")) {
+                openFilterMenu();
+                continue;
+            } else if (cmd.equals("3")) {
+                openSortMenu();
+                continue;
+            } else if (!cmd.equals("1")) {
+                System.out.println("✗ invalid choice.\n");
+                continue;
+            }
+
+            // apply flow
+            applyForInternship(available, myApps, hasAccepted, appliedOppIds);
+        }
+    }
+
+    private void applyForInternship(List<InternshipOpportunity> available,
+                                    List<Application> myApps,
+                                    boolean hasAccepted,
+                                    Set<String> appliedOppIds) {
+
+        if (hasAccepted) {
+            System.out.println("note: you have already accepted an internship placement.");
+            System.out.println("you may browse available internship opportunities, but cannot apply for new ones.\n");
             return;
         }
 
-        // print list
-        System.out.println();
-        System.out.printf("%-4s %-15s %-25s %-20s %-20s %-20s %-20s%n",
-                "S/N", "Opportunity ID", "Internship Title", "Internship Level", "Company", "Preferred Major", "Available Slots");
-        System.out.println("------------------------------------------------------------------------------------------------------------------------------");
-
-        int i = 1;
-        for (InternshipOpportunity o : available) {
-            String slotsStr = String.format("%d/%d", o.getConfirmedSlots(), o.getSlots());
-            System.out.printf("%-4d %-15s %-25s %-20s %-20s %-20s %-20s%n",
-                    i++, o.getId(), o.getTitle(), String.valueOf(o.getLevel()), o.getCompanyName(),
-                    String.valueOf(o.getPreferredMajor()), slotsStr);
-        }
-        System.out.println("\n(Total: " + available.size() + " internship opportunities)\n");
-
-        // check if student has already accepted an internship (cannot apply anymore)
-        boolean hasAccepted = myApps.stream()
-                .anyMatch(a -> a.getStatus() == ApplicationStatus.SUCCESSFUL && a.isAccepted());
-        if (hasAccepted) {
-            System.out.println("Note: You have already accepted an internship placement.");
-            System.out.println("You may browse available internship opportunities, but cannot apply for new ones.\n");
-            System.out.print("Press enter key to continue... "); sc.nextLine();
-            ConsoleUI.sectionHeader("Student View");
-            return; // viewing only; no apply prompt
-        }
-
-        // enforce max 3 active applications (pending or successful)
         long activeCount = myApps.stream()
                 .filter(a -> a.getStatus() == ApplicationStatus.PENDING
                         || a.getStatus() == ApplicationStatus.SUCCESSFUL)
                 .count();
         if (activeCount >= 3) {
-            System.out.println("✗ You have reached the maximum of 3 active applications.\n");
-            System.out.print("Press enter key to continue... "); 
-            sc.nextLine();
-            ConsoleUI.sectionHeader("Student View");
+            System.out.println("✗ you have reached the maximum of 3 active applications.\n");
             return;
         }
 
-        // ask if the student wants to apply now
-        System.out.print("Do you want to apply for an internship now? (y/n): ");
-        String ans = sc.nextLine().trim().toLowerCase();
-        if (!ans.equals("y") && !ans.equals("yes")) {
-            System.out.println();
-            ConsoleUI.sectionHeader("Student View");
+        if (available.isEmpty()) {
+            System.out.println("✗ nothing to apply to under current filters.\n");
             return;
         }
 
-        // prompt for id
-        System.out.print("Enter Opportunity ID of the internship you wish to apply for: ");
-        String chosenId = "";
+        System.out.print("enter opportunity id of the internship you wish to apply for: ");
+        String chosenId;
         boolean found;
         while (true) {
             chosenId = sc.nextLine().trim();
@@ -485,17 +583,15 @@ public class StudentView {
                 if (o.getId().equalsIgnoreCase(chosenId)) { found = true; break; }
             }
             if (found) break;
-            System.out.println("The entered Opportunity ID cannot be found.");
-            System.out.print("Enter Opportunity ID of the internship you wish to apply for: ");
+            System.out.println("the entered opportunity id cannot be found.");
+            System.out.print("enter opportunity id of the internship you wish to apply for: ");
         }
 
-        // get selected object
         InternshipOpportunity selected = null;
         for (InternshipOpportunity o : available) {
             if (o.getId().equalsIgnoreCase(chosenId)) { selected = o; break; }
         }
 
-        // show compact summary before confirming
         System.out.println("\n──────────────────────────────────────────────");
         System.out.println("              APPLICATION DETAILS              ");
         System.out.println("──────────────────────────────────────────────");
@@ -507,31 +603,28 @@ public class StudentView {
         System.out.printf("%-20s: %s%n", "Preferred Major", selected.getPreferredMajor());
         System.out.println("──────────────────────────────────────────────\n");
 
-        System.out.print("Confirm apply to this internship? (y/n): ");
+        System.out.print("confirm apply to this internship? (y/n): ");
         String confirm = sc.nextLine().trim().toLowerCase();
 
         if (confirm.equals("y") || confirm.equals("yes")) {
             Application result = applicationService.applyForOpportunity(student, selected);
             if (result != null) {
-                System.out.println("\n✓ Application submitted successfully – " + result.getId());
-                ConsoleUI.sectionHeader("Student View");
+                System.out.println("\n✓ application submitted successfully – " + result.getId());
+                // make it disappear next refresh
+                appliedOppIds.add(selected.getId());
             } else {
                 long active = applicationService.getActiveCountForStudent(student.getId());
                 boolean duplicate = applicationService.hasActiveApplication(student, selected);
                 if (duplicate) {
-                    System.out.println("✗ You already have an active application for this opportunity.\n");
-                    ConsoleUI.sectionHeader("Student View");
+                    System.out.println("✗ you already have an active application for this opportunity.\n");
                 } else if (active >= 3) {
-                    System.out.println("✗ You have reached the maximum of 3 active applications.\n");
-                    ConsoleUI.sectionHeader("Student View");
+                    System.out.println("✗ you have reached the maximum of 3 active applications.\n");
                 } else {
-                    System.out.println("✗ Unable to submit application. Please try again later.\n");
-                    ConsoleUI.sectionHeader("Student View");
+                    System.out.println("✗ unable to submit application. please try again later.\n");
                 }
             }
         } else {
-            System.out.println("Application cancelled.\n");
-            ConsoleUI.sectionHeader("Student View");
+            System.out.println("application cancelled.\n");
         }
-            }
+    }
 }

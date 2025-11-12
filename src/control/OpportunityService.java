@@ -1,5 +1,6 @@
 package control;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -7,7 +8,9 @@ import java.util.stream.Collectors;
 
 import entity.CareerCenterStaff;
 import entity.CompanyRepresentative;
+import entity.FilterCriteria;
 import entity.InternshipOpportunity;
+import entity.Student;
 import enumerations.Major;
 import enumerations.OpportunityStatus;
 import ui.ConsoleUI;
@@ -20,6 +23,26 @@ public class OpportunityService {
     public OpportunityService(List<InternshipOpportunity> opportunities, DataLoader loader) {
         this.opportunities = Objects.requireNonNull(opportunities, "Opportunities must not be null");
         this.loader = Objects.requireNonNull(loader, "Loader must not be null");
+    }
+
+    /** returns all opportunities matching filtercriteria, restricted to those open for the student */
+    public List<InternshipOpportunity> findBy(Student s, FilterCriteria fc) {
+        return getAllOpportunities().stream()
+                .filter(o -> o.isOpenFor(s))
+                .filter(o -> fc.getStatus() == null || o.getStatus() == fc.getStatus())
+                .filter(o -> fc.getPreferredMajor() == null
+                        || o.getPreferredMajor().name().equalsIgnoreCase(fc.getPreferredMajor()))
+                .filter(o -> fc.getLevel() == null || o.getLevel() == fc.getLevel())
+                .filter(o -> {
+                    if (fc.getClosingDateBefore() == null) return true;
+                    LocalDate limit = fc.getClosingDateBefore().toInstant()
+                            .atZone(java.time.ZoneId.systemDefault())
+                            .toLocalDate();
+                    return !o.getCloseDate().isAfter(limit);
+                })
+                .filter(o -> fc.getCompany() == null
+                        || o.getCompanyName().toLowerCase().contains(fc.getCompany().toLowerCase()))
+                .collect(Collectors.toList());
     }
 
     // -------------------- company rep actions --------------------
