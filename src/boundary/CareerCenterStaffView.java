@@ -5,11 +5,13 @@ import java.util.Scanner;
 
 import control.AccountApprovalService;
 import control.DataLoader;
+import control.ApplicationService;
 import control.OpportunityService;
 import entity.CareerCenterStaff;
 import entity.CompanyRepresentative;
 import entity.InternshipOpportunity;
 import entity.User;
+import entity.WithdrawalRequest;
 import ui.ConsoleUI;
 
 public class CareerCenterStaffView {
@@ -19,14 +21,16 @@ public class CareerCenterStaffView {
     private final DataLoader loader;
     private final AccountApprovalService approval;
     private final OpportunityService oppService;
+    private final ApplicationService applicationService;
 
-    public CareerCenterStaffView(Scanner sc, CareerCenterStaff staff, List<User> users, DataLoader loader, AccountApprovalService approval, OpportunityService oppService) {
+    public CareerCenterStaffView(Scanner sc, CareerCenterStaff staff, List<User> users, DataLoader loader, AccountApprovalService approval, OpportunityService oppService, ApplicationService applicationService) {
         this.sc = sc;
         this.staff = staff;
         this.users = users;
         this.loader = loader;
         this.approval = approval;
         this.oppService = oppService;
+        this.applicationService = applicationService;
     }
 
     public void run() {
@@ -42,6 +46,7 @@ public class CareerCenterStaffView {
                 case "1" -> manageAccount();
                 case "2" -> reviewRegistrations();
                 case "3" -> reviewInternshipOpportunities();
+                case "4" -> reviewWithdrawalRequests();
                 case "logout" -> {
                     System.out.println("\n✓ You have logged out of your account.\n");
                     return;
@@ -59,6 +64,7 @@ public class CareerCenterStaffView {
         System.out.println("(1) Manage Account");
         System.out.println("(2) Review Company Representative Registrations");
         System.out.println("(3) Review Internship Opportunities");
+        System.out.println("(4) Review Withdrawal Requests");
         System.out.println();
         System.out.println("→ Type 'logout' here to logout");
         System.out.println();
@@ -315,5 +321,82 @@ public class CareerCenterStaffView {
             }
             System.out.print("Enter 0-" + max + ": ");
         }
+    }
+
+     /** view all pending withdrawal requests and approve/reject them */
+    private void reviewWithdrawalRequests() {
+        ConsoleUI.sectionHeader("career center staff > pending withdrawal requests");
+
+        List<WithdrawalRequest> pending = applicationService.getPendingWithdrawalRequests();
+
+        if (pending.isEmpty()) {
+            System.out.println("✓ no pending withdrawal requests.\n");
+            System.out.print("press enter to return... "); sc.nextLine();
+            return;
+        }
+
+        System.out.printf("%-4s %-10s %-15s %-15s %-20s %-15s %-15s %-20s%n",
+                "s/n", "request id", "app id", "student id", "internship title", "company", "status", "requested at");
+        System.out.println("--------------------------------------------------------------------------------------------------------------------");
+
+        int i = 1;
+        for (WithdrawalRequest req : pending) {
+            System.out.printf("%-4d %-10s %-15s %-15s %-20s %-15s %-15s %-20s%n",
+                    i++,
+                    req.getId(),
+                    req.getApplication().getId(),
+                    req.getRequestedBy().getId(),
+                    req.getApplication().getOpportunity().getTitle(),
+                    req.getApplication().getOpportunity().getCompanyName(),
+                    req.getStatus(),
+                    req.getRequestedAt());
+        }
+
+        System.out.println();
+        System.out.print("Enter request ID to review (blank to cancel): ");
+        String id = sc.nextLine().trim();
+        if (id.isEmpty()) {
+            System.out.println("Request cancelled.\n");
+            ConsoleUI.sectionHeader("Career Center Staff View");
+            return;
+        }
+
+        WithdrawalRequest selected = pending.stream()
+                .filter(r -> r.getId().equalsIgnoreCase(id))
+                .findFirst().orElse(null);
+
+        if (selected == null) {
+            System.out.println("✗ Invalid Request ID. Please check and try again.\n");
+            System.out.println();
+            System.out.print("Press enter to return... "); 
+            sc.nextLine();
+            ConsoleUI.sectionHeader("Career Center Staff View");
+            return;
+        }
+
+        // print request details
+        System.out.println("\n────────────────────────────────────────────────────────────");
+        System.out.println("                WITHDRAWAL REQUEST DETAILS                  ");
+        System.out.println("────────────────────────────────────────────────────────────");
+        System.out.printf("%-18s: %s%n", "Request ID", selected.getId());
+        System.out.printf("%-18s: %s%n", "Student ID", selected.getRequestedBy().getId());
+        System.out.printf("%-18s: %s%n", "Application ID", selected.getApplication().getId());
+        System.out.printf("%-18s: %s%n", "Internship Title", selected.getApplication().getOpportunity().getTitle());
+        System.out.printf("%-18s: %s%n", "Internship Level", selected.getApplication().getOpportunity().getLevel());
+        System.out.printf("%-18s: %s%n", "Company", selected.getApplication().getOpportunity().getCompanyName());
+        System.out.printf("%-18s: %s%n", "Preferred Major", selected.getApplication().getOpportunity().getPreferredMajor());
+        System.out.printf("%-18s: %s%n", "Status", selected.getStatus());
+        System.out.printf("%-18s: %s%n", "Requested At", selected.getRequestedAt());
+        System.out.println("────────────────────────────────────────────────────────────");
+
+        System.out.print("\nApprove this withdrawal request? (y/n): ");
+        String decision = sc.nextLine().trim().toLowerCase();
+
+        boolean approve = decision.equals("y") || decision.equals("yes");
+        applicationService.reviewWithdrawalRequest(staff, selected, approve);
+
+        System.out.println();
+        System.out.print("Press enter to return... "); sc.nextLine();
+        ConsoleUI.sectionHeader("Career Center Staff View");
     }
 }

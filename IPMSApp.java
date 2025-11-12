@@ -68,7 +68,7 @@ public class IPMSApp {
                 } else if (logged instanceof CompanyRepresentative cr) {
                     new CompanyRepView(sc, cr, users, loader, oppService, appService).run();
                 } else if (logged instanceof CareerCenterStaff staff) {
-                    new CareerCenterStaffView(sc, staff, users, loader, approval, oppService).run();
+                    new CareerCenterStaffView(sc, staff, users, loader, approval, oppService, appService).run();
                 }
 
                 // when any view returns (e.g., they set `running = false`), we land here

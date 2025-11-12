@@ -4,11 +4,14 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import entity.Application;
+import entity.CareerCenterStaff;
 import entity.CompanyRepresentative;
 import entity.InternshipOpportunity;
 import entity.Student;
+import entity.WithdrawalRequest;
 import enumerations.ApplicationStatus;
 import enumerations.OpportunityStatus;
+import enumerations.WithdrawalStatus;
 
 public class ApplicationService {
     private static final int MAX_ACTIVE_APPS = 3;
@@ -50,11 +53,11 @@ public class ApplicationService {
     }
 
     /** public: does student already have an active app for this exact opportunity? */
-    public boolean hasActiveApplication(Student student, InternshipOpportunity opp) {
-        return applications.stream().anyMatch(a ->
-                a.getStudent().getId().equalsIgnoreCase(student.getId())
-                        && a.getOpportunity().getId().equalsIgnoreCase(opp.getId())
-                        && a.isActive());
+    public boolean hasActiveApplication(Student student, InternshipOpportunity opportunity) {
+        return getApplicationsForStudent(student).stream()
+            .anyMatch(a -> a.getOpportunity().equals(opportunity)
+                    && (a.getStatus() == ApplicationStatus.PENDING
+                        || a.getStatus() == ApplicationStatus.SUCCESSFUL));
     }
 
     /** public: fetch all applications for this student */
@@ -193,5 +196,88 @@ public class ApplicationService {
 
         System.out.println("✓ offer rejected successfully.");
         save(); // persist changes if needed
+    }
+
+    private final List<WithdrawalRequest> withdrawalRequests = new ArrayList<>();
+
+    /** check if an application already has a pending withdrawal request */
+    public boolean hasPendingWithdrawal(Application application) {
+        return withdrawalRequests.stream()
+                .anyMatch(req -> req.getApplication().equals(application)
+                        && req.getStatus() == WithdrawalStatus.PENDING);
+    }
+
+    /** student submits a withdrawal request */
+    public boolean submitWithdrawalRequest(Student student, Application application) {
+        if (student == null || application == null) return false;
+        if (!application.getStudent().equals(student)) return false;
+
+        // only allow if application is still active (pending or successful)
+        if (application.getStatus() != ApplicationStatus.PENDING
+                && application.getStatus() != ApplicationStatus.SUCCESSFUL) {
+            System.out.println("✗ you can only request withdrawal for active applications.");
+            return false;
+        }
+
+        // block duplicates
+        if (hasPendingWithdrawal(application)) {
+            System.out.println("✗ a pending withdrawal request already exists for this application.");
+            return false;
+        }
+
+        String id = "WR-" + UUID.randomUUID().toString().substring(0, 6).toUpperCase();
+        WithdrawalRequest request = new WithdrawalRequest(id, application, student);
+        withdrawalRequests.add(request);
+
+        System.out.println("✓ withdrawal request submitted successfully (pending approval by career center staff).");
+        return true;
+    }
+
+    /** list all pending withdrawal requests for staff view */
+    public List<WithdrawalRequest> getPendingWithdrawalRequests() {
+        return withdrawalRequests.stream()
+                .filter(req -> req.getStatus() == WithdrawalStatus.PENDING)
+                .collect(Collectors.toList());
+    }
+
+    /** staff reviews (approves / rejects) a withdrawal request */
+    public void reviewWithdrawalRequest(CareerCenterStaff staff, WithdrawalRequest req, boolean approve) {
+        if (req == null) return;
+        if (req.isReviewed()) {
+            System.out.println("✗ this request has already been reviewed.");
+            return;
+        }
+
+        req.review(staff, approve);
+        Application app = req.getApplication();
+        InternshipOpportunity opp = app.getOpportunity();
+
+        if (approve) {
+            // if accepted, free up a slot
+            if (app.isAccepted() && opp.getConfirmedSlots() > 0) {
+                opp.setConfirmedSlots(opp.getConfirmedSlots() - 1);
+
+                // reopen if previously filled
+                if (opp.getStatus() == OpportunityStatus.FILLED
+                        && opp.getConfirmedSlots() < opp.getSlots()) {
+                    opp.setStatus(OpportunityStatus.APPROVED);
+                    opp.setVisibility(true);
+                }
+            }
+
+            app.markWithdrawn();
+            System.out.println("✓ withdrawal request approved. application withdrawn.");
+        } else {
+            System.out.println("✓ withdrawal request rejected.");
+        }
+
+        save();
+    }
+
+    /** helper: view all withdrawal requests by a specific student */
+    public List<WithdrawalRequest> getRequestsForStudent(Student student) {
+        return withdrawalRequests.stream()
+                .filter(r -> r.getRequestedBy().equals(student))
+                .collect(Collectors.toList());
     }
 }
