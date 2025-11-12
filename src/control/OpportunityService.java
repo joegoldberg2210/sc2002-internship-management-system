@@ -18,8 +18,8 @@ public class OpportunityService {
     private final DataLoader loader; // for persistence
 
     public OpportunityService(List<InternshipOpportunity> opportunities, DataLoader loader) {
-        this.opportunities = Objects.requireNonNull(opportunities, "opportunities must not be null");
-        this.loader = Objects.requireNonNull(loader, "loader must not be null");
+        this.opportunities = Objects.requireNonNull(opportunities, "Opportunities must not be null");
+        this.loader = Objects.requireNonNull(loader, "Loader must not be null");
     }
 
     // -------------------- company rep actions --------------------
@@ -27,7 +27,7 @@ public class OpportunityService {
     /** create a new internship opportunity (auto-generates unique id and rejects duplicates) */
     public boolean createOpportunity(CompanyRepresentative rep, InternshipOpportunity opp) {
         if (rep == null || opp == null) {
-            System.out.println("✗ invalid data.");
+            System.out.println("✗ Invalid data.");
             return false;
         }
 
@@ -70,7 +70,7 @@ public class OpportunityService {
         existing.setVisibility(false);
 
         save();
-        System.out.println("✓ opportunity updated and sent for re-approval.");
+        System.out.println("✓ Opportunity updated and sent for re-approval.");
     }
 
     /** delete an opportunity (only by the owning rep and only if status is pending) */
@@ -79,18 +79,18 @@ public class OpportunityService {
 
         opportunities.remove(existing);
         save();
-        System.out.println("✓ opportunity deleted.");
+        System.out.println("✓ Opportunity deleted.");
     }
 
     /** toggle visibility (call from appropriate ui; no ownership check here) */
     public void toggleVisibility(InternshipOpportunity opp, boolean visible) {
         if (opp == null) {
-            System.out.println("✗ not found.");
+            System.out.println("✗ Opportunity not found.");
             return;
         }
         opp.setVisibility(visible);
         save();
-        System.out.println(visible ? "✓ now visible to students." : "✓ hidden from students.");
+        System.out.println(visible ? "✓ Now visible to students." : "✓ Hidden from students.");
     }
 
     // -------------------- lookups --------------------
