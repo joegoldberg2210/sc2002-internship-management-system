@@ -2,6 +2,7 @@ package boundary;
 
 import java.util.List;
 import java.util.Scanner;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import control.ApplicationService;
@@ -11,6 +12,7 @@ import entity.InternshipOpportunity;
 import entity.Student;
 import entity.Application;
 import entity.User;
+import enumerations.ApplicationStatus;
 import ui.ConsoleUI;
 
 public class StudentView {
@@ -41,10 +43,10 @@ public class StudentView {
 
             switch (choice) {
                 case "1" -> manageAccount();
-                case "2" -> viewAvailableInternships();
-                case "3" -> applyForInternship();
-                case "4" -> viewApplications();
-                case "5" -> manageInternshipOffers();
+                case "2" -> viewAndApplyInternships();
+                case "3" -> viewApplications();
+                case "4" -> viewPendingInternshipOffers();
+                case "5" -> viewAcceptedInternship();
                 case "6" -> withdrawApplication();
                 case "logout" -> {
                     System.out.println("\n✓ You have logged out of your account.\n");
@@ -57,10 +59,10 @@ public class StudentView {
 
     private void showMenu() {
         System.out.println("(1) Manage Account");
-        System.out.println("(2) View Available Internships");
-        System.out.println("(3) Apply New Internship");
-        System.out.println("(4) View My Internship Applications");
-        System.out.println("(5) Manage Internship Offers");
+        System.out.println("(2) View & Apply Available Internships");
+        System.out.println("(3) View My Submitted Applications");
+        System.out.println("(4) View Pending Internship Offers");
+        System.out.println("(5) View Accepted Internship Placement");
         System.out.println("(6) Withdraw Internship Application");
         System.out.println();
         System.out.println("→ Type 'logout' here to logout");
@@ -119,50 +121,50 @@ public class StudentView {
         }
     }
 
-    private void viewAvailableInternships() {
-        ConsoleUI.sectionHeader("Student View > View Available Internships");
+    // private void viewAvailableInternships() {
+    //     ConsoleUI.sectionHeader("Student View > View Available Internships");
 
-        List<InternshipOpportunity> available = opportunityService.getAllOpportunities()
-            .stream()
-            .filter(o -> o.isOpenFor(student))
-            .collect(Collectors.toList());
+    //     List<InternshipOpportunity> available = opportunityService.getAllOpportunities()
+    //         .stream()
+    //         .filter(o -> o.isOpenFor(student))
+    //         .collect(Collectors.toList());
 
-        if (available.isEmpty()) {
-            System.out.println("✗ No internship opportunities currently available for your profile.\n");
-            ConsoleUI.sectionHeader("Student View");
-        }
+    //     if (available.isEmpty()) {
+    //         System.out.println("✗ No internship opportunities currently available for your profile.\n");
+    //         ConsoleUI.sectionHeader("Student View");
+    //     }
 
-        System.out.println();
-        System.out.printf(
-            "%-4s %-10s %-25s %-20s %-15s %-15s %-20s%n",
-            "S/N", "ID", "Title", "Company", "Major", "Level", "Available Slots"
-        );
-        System.out.println("--------------------------------------------------------------------------------------------------------------------------");
+    //     System.out.println();
+    //     System.out.printf(
+    //         "%-4s %-10s %-25s %-20s %-15s %-15s %-20s%n",
+    //         "S/N", "ID", "Title", "Company", "Major", "Level", "Available Slots"
+    //     );
+    //     System.out.println("--------------------------------------------------------------------------------------------------------------------------");
 
-        int i = 1;
-        for (InternshipOpportunity o : available) {
-            String slotsStr = String.format("%d/%d", o.getConfirmedSlots(), o.getSlots());
+    //     int i = 1;
+    //     for (InternshipOpportunity o : available) {
+    //         String slotsStr = String.format("%d/%d", o.getConfirmedSlots(), o.getSlots());
 
-            System.out.printf(
-                "%-4d %-10s %-25s %-20s %-15s %-15s %-20s%n",
-                i++,
-                o.getId(),
-                o.getTitle(),
-                o.getCompanyName(),
-                String.valueOf(o.getPreferredMajor()),
-                String.valueOf(o.getLevel()),
-                slotsStr
-            );
-        }
+    //         System.out.printf(
+    //             "%-4d %-10s %-25s %-20s %-15s %-15s %-20s%n",
+    //             i++,
+    //             o.getId(),
+    //             o.getTitle(),
+    //             o.getCompanyName(),
+    //             String.valueOf(o.getPreferredMajor()),
+    //             String.valueOf(o.getLevel()),
+    //             slotsStr
+    //         );
+    //     }
 
-        System.out.println("\n(Total: " + available.size() + " internship opportunities available)");
-        System.out.println();
+    //     System.out.println("\n(Total: " + available.size() + " internship opportunities available)");
+    //     System.out.println();
 
-        System.out.print("Press enter key to continue... ");
-        sc.nextLine();
+    //     System.out.print("Press enter key to continue... ");
+    //     sc.nextLine();
 
-        ConsoleUI.sectionHeader("Student View");
-    }
+    //     ConsoleUI.sectionHeader("Student View");
+    // }
 
     private void viewApplications() {
         ConsoleUI.sectionHeader("Student View > View My Internship Applications");
@@ -205,102 +207,102 @@ public class StudentView {
         ConsoleUI.sectionHeader("Student View");
     }
 
-    private void applyForInternship() {
-        ConsoleUI.sectionHeader("Student View > Apply New Internship");
+    // private void applyForInternship() {
+    //     ConsoleUI.sectionHeader("Student View > Apply New Internship");
         
-        // get all available internships open to this student
-        List<InternshipOpportunity> available = opportunityService.getAllOpportunities().stream()
-                .filter(o -> o.isOpenFor(student))
-                .toList();
+    //     // get all available internships open to this student
+    //     List<InternshipOpportunity> available = opportunityService.getAllOpportunities().stream()
+    //             .filter(o -> o.isOpenFor(student))
+    //             .toList();
 
-        if (available.isEmpty()) {
-            System.out.println("✗ No internship opportunities currently available for you.\n");
-            ConsoleUI.sectionHeader("Student View");
-        }
+    //     if (available.isEmpty()) {
+    //         System.out.println("✗ No internship opportunities currently available for you.\n");
+    //         ConsoleUI.sectionHeader("Student View");
+    //     }
 
-        // display list
-        System.out.println();
-        System.out.printf(
-            "%-4s %-20s %-25s %-20s %-20s %-15s %-20s%n",
-            "S/N", "Opportunity ID", "Title", "Company", "Preferred Major", "Level", "Available Slots"
-        );
-        System.out.println("--------------------------------------------------------------------------------------------------------------------------");
+    //     // display list
+    //     System.out.println();
+    //     System.out.printf(
+    //         "%-4s %-20s %-25s %-20s %-20s %-15s %-20s%n",
+    //         "S/N", "Opportunity ID", "Title", "Company", "Preferred Major", "Level", "Available Slots"
+    //     );
+    //     System.out.println("--------------------------------------------------------------------------------------------------------------------------");
 
-        int i = 1;
-        for (InternshipOpportunity o : available) {
-            String slotsStr = String.format("%d/%d", o.getConfirmedSlots(), o.getSlots());
+    //     int i = 1;
+    //     for (InternshipOpportunity o : available) {
+    //         String slotsStr = String.format("%d/%d", o.getConfirmedSlots(), o.getSlots());
 
-            System.out.printf(
-                "%-4d %-20s %-25s %-20s %-20s %-15s %-20s%n",
-                i++,
-                o.getId(),
-                o.getTitle(),
-                o.getCompanyName(),
-                String.valueOf(o.getPreferredMajor()),
-                String.valueOf(o.getLevel()),
-                slotsStr
-            );
-        }
+    //         System.out.printf(
+    //             "%-4d %-20s %-25s %-20s %-20s %-15s %-20s%n",
+    //             i++,
+    //             o.getId(),
+    //             o.getTitle(),
+    //             o.getCompanyName(),
+    //             String.valueOf(o.getPreferredMajor()),
+    //             String.valueOf(o.getLevel()),
+    //             slotsStr
+    //         );
+    //     }
 
-        System.out.println();
+    //     System.out.println();
         
-        // let student choose
-        System.out.print("Enter opportunity ID of the internship you wish to apply for: ");
-        String chosenId = "";
+    //     // let student choose
+    //     System.out.print("Enter opportunity ID of the internship you wish to apply for: ");
+    //     String chosenId = "";
 
-        while (true) {
-            chosenId = sc.nextLine().trim();
-            boolean found = false;
+    //     while (true) {
+    //         chosenId = sc.nextLine().trim();
+    //         boolean found = false;
 
-            for (InternshipOpportunity o : available) {
-                if (o.getId().equalsIgnoreCase(chosenId)) {
-                    found = true;
-                    break;
-                }
-            }
+    //         for (InternshipOpportunity o : available) {
+    //             if (o.getId().equalsIgnoreCase(chosenId)) {
+    //                 found = true;
+    //                 break;
+    //             }
+    //         }
 
-            if (found) break;  // valid id entered
-            System.out.println("The entered opportunity ID cannot be found.");
-            System.out.print("Enter opportunity ID of the internship you wish to apply for: ");
-        }
+    //         if (found) break;  // valid id entered
+    //         System.out.println("The entered opportunity ID cannot be found.");
+    //         System.out.print("Enter opportunity ID of the internship you wish to apply for: ");
+    //     }
 
-        InternshipOpportunity selected = null;
-        for (InternshipOpportunity o : available) {
-            if (o.getId().equalsIgnoreCase(chosenId)) {
-                selected = o;
-                break;
-            }
-        }
+    //     InternshipOpportunity selected = null;
+    //     for (InternshipOpportunity o : available) {
+    //         if (o.getId().equalsIgnoreCase(chosenId)) {
+    //             selected = o;
+    //             break;
+    //         }
+    //     }
 
-        // confirm application
-        System.out.printf("Apply for '%s' at %s? (y/n): ", selected.getTitle(), selected.getCompanyName());
-        String confirm = sc.nextLine().trim().toLowerCase();
+    //     // confirm application
+    //     System.out.printf("Apply for '%s' at %s? (y/n): ", selected.getTitle(), selected.getCompanyName());
+    //     String confirm = sc.nextLine().trim().toLowerCase();
 
-        if (confirm.equals("y") || confirm.equals("yes")) {
-            Application result = applicationService.applyForOpportunity(student, selected);
+    //     if (confirm.equals("y") || confirm.equals("yes")) {
+    //         Application result = applicationService.applyForOpportunity(student, selected);
 
-            if (result != null) {
-                System.out.println("✓ Application submitted successfully – " + result.getId());
-            } else {
-                long active = applicationService.getActiveCountForStudent(student.getId());
-                boolean duplicate = applicationService.hasActiveApplication(student, selected);
+    //         if (result != null) {
+    //             System.out.println("✓ Application submitted successfully – " + result.getId());
+    //         } else {
+    //             long active = applicationService.getActiveCountForStudent(student.getId());
+    //             boolean duplicate = applicationService.hasActiveApplication(student, selected);
 
-                if (duplicate) {
-                    System.out.println("✗ You already have an active application for this opportunity.\n");
-                } else if (active >= 3) {
-                    System.out.println("✗ You have reached the maximum of 3 active applications.\n");
-                }
-            }
-        } else {
-            System.out.println("Application cancelled.\n");
-        }
+    //             if (duplicate) {
+    //                 System.out.println("✗ You already have an active application for this opportunity.\n");
+    //             } else if (active >= 3) {
+    //                 System.out.println("✗ You have reached the maximum of 3 active applications.\n");
+    //             }
+    //         }
+    //     } else {
+    //         System.out.println("Application cancelled.\n");
+    //     }
 
  
-        ConsoleUI.sectionHeader("Student View");
-    }
+    //     ConsoleUI.sectionHeader("Student View");
+    // }
 
-    private void manageInternshipOffers() {
-        ConsoleUI.sectionHeader("Student View > Manage Internship Offers");
+    private void viewPendingInternshipOffers() {
+        ConsoleUI.sectionHeader("Student View > View Pending Internship Offers");
 
         List<Application> offers = applicationService.getSuccessfulOffersForStudent(student);
 
@@ -383,5 +385,167 @@ public class StudentView {
 
     private void withdrawApplication() {
         ConsoleUI.sectionHeader("Student View > Withdraw Internship Applications");
+    }
+
+    private void viewAcceptedInternship() {
+        ConsoleUI.sectionHeader("Student View > View Accepted Internship");
+
+        List<Application> myApps = applicationService.getApplicationsForStudent(student);
+
+        // accepted = company marked successful and student accepted it
+        List<Application> accepted = myApps.stream()
+                .filter(a -> a.getStatus() == ApplicationStatus.SUCCESSFUL && a.isAccepted())
+                .collect(Collectors.toList());
+
+        if (accepted.isEmpty()) {
+            System.out.println("✗ you have not accepted any internship.\n");
+            System.out.print("press enter to return... ");
+            sc.nextLine();
+            ConsoleUI.sectionHeader("student view");
+            return;
+        }
+
+        System.out.printf("%-4s %-15s %-25s %-22s %-12s %-14s %-12s%n",
+                "s/n", "application id", "title", "company", "level", "application status", "applied date");
+        System.out.println("----------------------------------------------------------------------------------------------------------------");
+
+        int i = 1;
+        for (Application a : accepted) {
+            InternshipOpportunity o = a.getOpportunity();
+            System.out.printf("%-4d %-15s %-25s %-22s %-12s %-14s %-12s%n",
+                    i++,
+                    a.getId(),
+                    o.getTitle(),
+                    o.getCompanyName(),
+                    String.valueOf(o.getLevel()),
+                    String.valueOf(a.getStatus()),   // will show SUCCESSFUL
+                    String.valueOf(a.getAppliedAt()));
+        }
+
+        System.out.print("\npress enter to return... ");
+        sc.nextLine();
+        ConsoleUI.sectionHeader("Student View");
+    }
+
+    private void viewAndApplyInternships() {
+        ConsoleUI.sectionHeader("Student View > View & Apply internships");
+
+        // fetch opportunities open to this student
+        List<InternshipOpportunity> available = opportunityService.getAllOpportunities().stream()
+                .filter(o -> o.isOpenFor(student))
+                .collect(Collectors.toList());
+
+        // get student's applications and build a set of opportunity ids already applied to
+        // rule: hide anything the student has applied to (pending/successful/unsuccessful);
+        // allow re-apply only if they previously withdrew.
+        List<Application> myApps = applicationService.getApplicationsForStudent(student);
+        Set<String> appliedOppIds = myApps.stream()
+                .filter(a -> a.getStatus() != ApplicationStatus.WITHDRAWN)
+                .map(a -> a.getOpportunity().getId())
+                .collect(Collectors.toSet());
+
+        // remove already-applied opportunities from the available list
+        available = available.stream()
+                .filter(o -> !appliedOppIds.contains(o.getId()))
+                .collect(Collectors.toList());
+
+        if (available.isEmpty()) {
+            System.out.println("✗ no internship opportunities currently available for your profile.\n");
+            System.out.print("press enter key to continue... "); sc.nextLine();
+            ConsoleUI.sectionHeader("Student View");
+            return;
+        }
+
+        // print list
+        System.out.println();
+        System.out.printf("%-4s %-20s %-25s %-20s %-15s %-15s %-20s%n",
+                "S/N", "Opportunity ID", "Title", "Company", "Preferred Major", "Level", "Available Slots");
+        System.out.println("--------------------------------------------------------------------------------------------------------------------------");
+
+        int i = 1;
+        for (InternshipOpportunity o : available) {
+            String slotsStr = String.format("%d/%d", o.getConfirmedSlots(), o.getSlots());
+            System.out.printf("%-4d %-20s %-25s %-20s %-15s %-15s %-20s%n",
+                    i++, o.getId(), o.getTitle(), o.getCompanyName(),
+                    String.valueOf(o.getPreferredMajor()),
+                    String.valueOf(o.getLevel()), slotsStr);
+        }
+        System.out.println("\n(total: " + available.size() + " internship opportunities)\n");
+
+        // check if student has already accepted an internship (cannot apply anymore)
+        boolean hasAccepted = myApps.stream()
+                .anyMatch(a -> a.getStatus() == ApplicationStatus.SUCCESSFUL && a.isAccepted());
+        if (hasAccepted) {
+            System.out.println("Note: You have already accepted an internship placement.");
+            System.out.println("You may browse available internship opportunities, but cannot apply for new ones.\n");
+            System.out.print("Press enter key to continue... "); sc.nextLine();
+            ConsoleUI.sectionHeader("Student View");
+            return; // viewing only; no apply prompt
+        }
+
+        // enforce max 3 active applications (pending or successful)
+        long activeCount = myApps.stream()
+                .filter(a -> a.getStatus() == ApplicationStatus.PENDING
+                        || a.getStatus() == ApplicationStatus.SUCCESSFUL)
+                .count();
+        if (activeCount >= 3) {
+            System.out.println("✗ You have reached the maximum of 3 active applications.\n");
+            System.out.print("Press enter key to continue... "); 
+            sc.nextLine();
+            ConsoleUI.sectionHeader("Student View");
+            return;
+        }
+
+        // ask if the student wants to apply now
+        System.out.print("Do you want to apply for an internship now? (y/n): ");
+        String ans = sc.nextLine().trim().toLowerCase();
+        if (!ans.equals("y") && !ans.equals("yes")) {
+            System.out.println();
+            ConsoleUI.sectionHeader("Student View");
+            return;
+        }
+
+        // prompt for id (same style as before)
+        System.out.print("Enter Opportunity ID of the internship you wish to apply for: ");
+        String chosenId = "";
+        boolean found;
+        while (true) {
+            chosenId = sc.nextLine().trim();
+            found = false;
+            for (InternshipOpportunity o : available) {
+                if (o.getId().equalsIgnoreCase(chosenId)) { found = true; break; }
+            }
+            if (found) break;
+            System.out.println("The entered Opportunity ID cannot be found.");
+            System.out.print("Enter Opportunity ID of the internship you wish to apply for: ");
+        }
+
+        // get selected object
+        InternshipOpportunity selected = null;
+        for (InternshipOpportunity o : available) {
+            if (o.getId().equalsIgnoreCase(chosenId)) { selected = o; break; }
+        }
+
+        // confirm and apply
+        System.out.printf("Apply for '%s' at %s? (y/n): ", selected.getTitle(), selected.getCompanyName());
+        String confirm = sc.nextLine().trim().toLowerCase();
+
+        if (confirm.equals("y") || confirm.equals("yes")) {
+            Application result = applicationService.applyForOpportunity(student, selected);
+            if (result != null) {
+                System.out.println("✓ Application submitted successfully – " + result.getId());
+            } else {
+                long active = applicationService.getActiveCountForStudent(student.getId());
+                boolean duplicate = applicationService.hasActiveApplication(student, selected);
+                if (duplicate)      System.out.println("✗ You already have an active application for this opportunity.\n");
+                else if (active>=3) System.out.println("✗ You have reached the maximum of 3 active applications.\n");
+                else                System.out.println("✗ Unable to submit application. Please try again later.\n");
+            }
+        } else {
+            System.out.println("Application cancelled.\n");
+        }
+
+        System.out.print("Press enter key to continue... "); sc.nextLine();
+        ConsoleUI.sectionHeader("Student View");
     }
 }
