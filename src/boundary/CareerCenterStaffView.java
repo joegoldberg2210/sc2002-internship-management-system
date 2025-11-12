@@ -82,6 +82,7 @@ public class CareerCenterStaffView {
             case "1" -> viewProfile();
             case "2" -> changePassword();
             case "0" -> { ConsoleUI.sectionHeader("Career Center Staff View"); }
+            default -> { ConsoleUI.sectionHeader("Student View"); }
         }
     }
 
@@ -139,15 +140,15 @@ public class CareerCenterStaffView {
         // table header
         System.out.println();
         System.out.printf(
-            "%-4s %-15s %-25s %-25s %-20s %-20s%n",
-            "S/N", "ID", "Name", "Company", "Department", "Position"
+            "%-4s %-25s %-25s %-25s %-20s %-20s%n",
+            "S/N", "Company Representative ID", "Name", "Company", "Department", "Position"
         );
         System.out.println("---------------------------------------------------------------------------------------------------------------");
 
         int i = 1;
         for (CompanyRepresentative r : pending) {
             System.out.printf(
-                "%-4d %-15s %-25s %-25s %-20s %-20s%n",
+                "%-4d %-25s %-25s %-25s %-20s %-20s%n",
                 i++,
                 r.getId(),
                 r.getName(),
@@ -174,7 +175,7 @@ public class CareerCenterStaffView {
         System.out.println("          Company Representative Application Details        ");
         System.out.println("────────────────────────────────────────────────────────────");
         System.out.printf("%-18s: %s%n", "Name", rep.getName());
-        System.out.printf("%-18s: %s%n", "Representative ID", rep.getId());
+        System.out.printf("%-18s: %s%n", "Company Representative ID", rep.getId());
         System.out.printf("%-18s: %s%n", "Company", rep.getCompanyName());
         System.out.printf("%-18s: %s%n", "Department", rep.getDepartment());
         System.out.printf("%-18s: %s%n", "Position", rep.getPosition());
@@ -183,7 +184,7 @@ public class CareerCenterStaffView {
         // action menu
         System.out.println("(1) Approve Application");
         System.out.println("(2) Reject Application");
-        System.out.println("(0) Back to Career Center Staff View");
+        System.out.println("(0) Cancel");
         System.out.println();  
         System.out.print("Enter choice: ");
         String c = sc.nextLine().trim();
@@ -223,8 +224,8 @@ public class CareerCenterStaffView {
         // table header
         System.out.println();
         System.out.printf(
-            "%-4s %-15s %-25s %-12s %-12s %-9s %-15s %-12s %-16s%n",
-            "S/N", "ID", "Title", "Major", "Level", "Slots", "Company", "Open Date", "Closing Date"
+            "%-4s %-20s %-25s %-20s %-20s %-20s %-20s %-12s %-16s%n",
+            "S/N", "Company Representative ID", "Internship Title", "Preferred Major", "Level", "Available Slots", "Company", "Open Date", "Closing Date"
         );
         System.out.println("--------------------------------------------------------------------------------------------------------------------------------");
 
@@ -232,7 +233,7 @@ public class CareerCenterStaffView {
         for (InternshipOpportunity o : pending) {
             String slotsStr = String.format("%d/%d", o.getConfirmedSlots(), o.getSlots());
             System.out.printf(
-                "%-4d %-15s %-25s %-12s %-12s %-9s %-15s %-12s %-16s%n",
+                "%-4d %-20s %-25s %-20s %-20s %-20s %-20s %-12s %-16s%n",
                 i++,
                 o.getId(),
                 o.getTitle(),

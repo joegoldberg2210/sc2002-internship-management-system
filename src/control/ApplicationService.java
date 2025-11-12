@@ -150,7 +150,7 @@ public class ApplicationService {
         // accept this offer
         app.markAccepted();
         opp.setConfirmedSlots(opp.getConfirmedSlots() + 1);
-        opp.setSlots(opp.getSlots() - 1); // reduce available slots by 1
+        // opp.setSlots(opp.getSlots() - 1); // reduce available slots by 1
 
         // mark all other offers/applications by this student as withdrawn
         withdrawOtherOffers(student, app);

@@ -213,7 +213,7 @@ public class StudentView {
         }
 
         // ask if student wants to act
-        System.out.print("\nDo you want to accept/reject any internship opportunity? (y/n): ");
+        System.out.print("\nDo you want to accept/reject any internship opportunities? (y/n): ");
         String response = sc.nextLine().trim().toUpperCase();
 
         if (!response.equals("Y")) {
