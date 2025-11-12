@@ -17,7 +17,7 @@ public class WithdrawalRequest {
     private Application application;            // The application that the student wishes to withdraw from
     private Student requestedBy;                // The student who made the withdrawal request
     private final LocalDate requestedAt;                   // Date the request was created
-    private ApprovalStatus status;              // Current approval status (Pending, Approved, Rejected)
+    private WithdrawalStatus status;              // Current withdrawal status (Pending, Approved, Rejected)
     private CareerCenterStaff reviewedBy;       // The staff member who reviewed the request
     private LocalDate reviewedAt;                    // Date when the request was reviewed
 
@@ -27,15 +27,15 @@ public class WithdrawalRequest {
         this.application = application;
         this.requestedBy = requestedBy;
         this.requestedAt = LocalDate.now();
-        this.status = ApprovalStatus.PENDING;   // Default state when created
+        this.status = WithdrawalStatus.PENDING;   // Default state when created
     }
 
     // === Behavioural Methods ===
 
-    /** Reviews the withdrawal request by a Career Center Staff. Updates the approval status and review timestamp.*/
+    /** Reviews the withdrawal request by a Career Center Staff. Updates the withdrawal status and review timestamp.*/
     public void review(CareerCenterStaff staff, boolean approve) {
         this.reviewedBy = staff;
-        this.status = approve ? ApprovalStatus.APPROVED : ApprovalStatus.REJECTED;
+        this.status = approve ? WithdrawalStatus.APPROVED : WithdrawalStatus.REJECTED;
         this.reviewedAt = LocalDate.now();
     }
 
@@ -43,14 +43,14 @@ public class WithdrawalRequest {
 
     /** Checks whether the request has already been reviewed.*/
     public boolean isReviewed() {
-        return status == ApprovalStatus.APPROVED || status == ApprovalStatus.REJECTED;
+        return status == WithdrawalStatus.APPROVED || status == WithdrawalStatus.REJECTED;
     }
 
     /** Resets the review details (e.g., if reassignment or re-evaluation is needed).*/
     public void resetReview() {
         this.reviewedBy = null;
         this.reviewedAt = null;
-        this.status = ApprovalStatus.PENDING;
+        this.status = WithdrawalStatus.PENDING;
     }
 
     // === Getters ===
@@ -58,7 +58,7 @@ public class WithdrawalRequest {
     public Application getApplication() { return application; }
     public Student getRequestedBy() { return requestedBy; }
     public LocalDate getRequestedAt() { return requestedAt; }
-    public ApprovalStatus getStatus() { return status; }
+    public WithdrawalStatus getStatus() { return status; }
     public CareerCenterStaff getReviewedBy() { return reviewedBy; }
     public LocalDate getReviewedAt() { return reviewedAt; }
 
