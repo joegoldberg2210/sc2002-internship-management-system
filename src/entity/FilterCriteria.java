@@ -1,38 +1,49 @@
 package entity;
 
-import enumerations.*;
+import java.io.Serializable;
 import java.util.Date;
 
-/** Represents filtering criteria used to view internship opportunities or generate reports.*/
-public class FilterCriteria {
-    private final OpportunityStatus status;      // Filter by opportunity status
-    private final String preferredMajor;         // Filter by applicant's preferred major
-    private final InternshipLevel level;         // Filter by internship level
-    private final Date closingDateBefore;        // Filter by closing date
-    private final String company;                // Filter by company name
+import enumerations.Major;
+import enumerations.InternshipLevel;
+import enumerations.OpportunityStatus;
 
-    public FilterCriteria(OpportunityStatus status, String preferredMajor,
-                          InternshipLevel level, Date closingDateBefore, String company) {
-        this.status = status;
-        this.preferredMajor = preferredMajor;
-        this.level = level;
-        this.closingDateBefore = closingDateBefore;
-        this.company = company;
+public class FilterCriteria implements Serializable {
+
+    private OpportunityStatus status;     // pending / approved / filled / rejected
+    private String preferredMajor;        // stored as string name
+    private InternshipLevel level;        // basic / intermediate / advanced
+    private String company;               // optional for search
+    private Date closingDateBefore;       // optional
+
+    public FilterCriteria() {
+        // empty constructor required
     }
 
-    // === Getters ===
+    // === getters ===
     public OpportunityStatus getStatus() { return status; }
     public String getPreferredMajor() { return preferredMajor; }
     public InternshipLevel getLevel() { return level; }
-    public Date getClosingDateBefore() { return closingDateBefore; }
     public String getCompany() { return company; }
+    public Date getClosingDateBefore() { return closingDateBefore; }
 
-    /**
-     * Returns a readable string summary of this filter.
-     */
-    @Override
-    public String toString() {
-        return String.format("FilterCriteria[Status=%s, Major=%s, Level=%s, ClosingBefore=%s, Company=%s]",
-                status, preferredMajor, level, closingDateBefore, company);
+    // === setters ===
+    public void setStatus(OpportunityStatus status) {
+        this.status = status;
+    }
+
+    public void setPreferredMajor(String preferredMajor) {
+        this.preferredMajor = preferredMajor;
+    }
+
+    public void setLevel(InternshipLevel level) {
+        this.level = level;
+    }
+
+    public void setCompany(String company) {
+        this.company = company;
+    }
+
+    public void setClosingDateBefore(Date date) {
+        this.closingDateBefore = date;
     }
 }
