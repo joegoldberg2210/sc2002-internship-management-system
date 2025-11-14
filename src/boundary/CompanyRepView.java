@@ -48,7 +48,8 @@ public class CompanyRepView {
             switch (choice) {
                 case "1" -> manageAccount();
                 case "2" -> manageOpportunities();
-                case "3" -> reviewApplications();
+                case "3" -> reviewPendingApplications();
+                case "4" -> viewAllApplications();
                 case "logout" -> {
                     System.out.println("\n✓ You have logged out of your account.\n");
                     return;
@@ -61,7 +62,8 @@ public class CompanyRepView {
     private void showMenu() {
         System.out.println("(1) Manage Account");
         System.out.println("(2) Manage Internship Opportunities");
-        System.out.println("(3) Review Internship Applications");
+        System.out.println("(3) Review Pending Internship Applications");
+        System.out.println("(4) View All Internship Applications");
         System.out.println();
         System.out.println("→ Type 'logout' here to logout");
         System.out.println();
@@ -144,7 +146,7 @@ public class CompanyRepView {
         }
     }
 
-    private void reviewApplications() {
+    private void reviewPendingApplications() {
         ConsoleUI.sectionHeader("Company Representative View > Review Internship Applications");
         System.out.println();
 
@@ -163,84 +165,91 @@ public class CompanyRepView {
 
         // table header
         System.out.printf(
-            "%-4s %-15s %-15s %-15s %-15s %-20s %-20s %-20s %-20 %-12s%n",
+            "%-4s %-15s %-15s %-15s %-20s %-20s %-20s %-20s %-20s %-12s%n",
             "S/N", "Application ID", "Student ID", "Opportunity ID", "Internship Title", "Internship Level", "Company", "Preferred Major", "Available Slots", "Applied At"
         );
-        System.out.println("--------------------------------------------------------------------------------------------------------------------");
+        System.out.println("------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
 
         int i = 1;
         for (Application a : myApps) {
+            String slotsStr = String.format("%d/%d", a.getOpportunity().getConfirmedSlots(), a.getOpportunity().getSlots());
             System.out.printf(
-                "%-4d %-15s %-15s %-15s %-15s %-20s %-20s %-20s %-20 %-12s%n",
+                "%-4s %-15s %-15s %-15s %-20s %-20s %-20s %-20s %-20s %-12s%n",
                 i++,
                 a.getId(),
                 a.getStudent().getId(),
                 a.getOpportunity().getId(),
+                a.getOpportunity().getTitle(),
+                a.getOpportunity().getLevel(),
+                a.getOpportunity().getCompanyName(),
                 a.getStatus(),
-                String.format("%d/%d", a.getOpportunity().getConfirmedSlots(), a.getOpportunity().getSlots()),
-                a.getOpportunity().getSlots(),
+                slotsStr,
                 a.getAppliedAt()
             );
         }
 
-        System.out.println("\n(Total: " + myApps.size() + " applications)\n");
+        System.out.println("\n(Total: " + myApps.size() + " internship applications)\n");
 
-        int idx = -1;
+        Application selected = null;
 
         while (true) {
-            System.out.print("Select # to review (leave blank to cancel): ");
-            String input = sc.nextLine().trim();
+            System.out.print("Enter Application ID to review (blank to cancel): ");
+            String id = sc.nextLine().trim();
 
-            if (input.isEmpty()) {
-                 ConsoleUI.sectionHeader("Company Representative View");
+            if (id.isEmpty()) {
+                ConsoleUI.sectionHeader("Company Representative View");
                 return;
             }
 
-            try {
-                idx = Integer.parseInt(input);
+            selected = myApps.stream()
+                    .filter(a -> a.getId().equalsIgnoreCase(id))
+                    .findFirst()
+                    .orElse(null);
 
-                if (idx < 1 || idx > myApps.size()) {
-                    System.out.println("✗ Invalid input. Please try again.\n");
-                    continue;
-                }
+            if (selected != null) break;
 
-                break; 
-            } catch (NumberFormatException e) {
-                System.out.println("✗ Invalid input. Please try again.\n");
-            }
+            System.out.println("✗ Invalid application ID. Please try again.\n");
         }
 
-        Application sel = myApps.get(idx - 1);
-        InternshipOpportunity opp = sel.getOpportunity();
+        InternshipOpportunity opp = selected.getOpportunity();
 
         // detail block
         System.out.println("\n────────────────────────────────────────────────────────────");
-        System.out.println("                    APPLICATION DETAILS                      ");
+        System.out.println("                    Application Details                      ");
         System.out.println("────────────────────────────────────────────────────────────");
-        System.out.printf("%-18s: %s%n", "Application ID", sel.getId());
-        System.out.printf("%-18s: %s%n", "Student ID", sel.getStudent().getId());
+        System.out.printf("%-18s: %s%n", "Application ID", selected.getId());
+        System.out.printf("%-18s: %s%n", "Student ID", selected.getStudent().getId());
         System.out.printf("%-18s: %s%n", "Opportunity ID", opp.getId());
         System.out.printf("%-18s: %s%n", "Internship Title", opp.getTitle());
+        System.out.printf("%-18s: %s%n", "Internship Level", opp.getLevel());
         System.out.printf("%-18s: %s%n", "Company", opp.getCompanyName());
-        System.out.printf("%-18s: %s%n", "Status", sel.getStatus());
-        System.out.printf("%-18s: %s%n", "Applied At", sel.getAppliedAt());
+        System.out.printf("%-18s: %s%n", "Preferred Major", opp.getPreferredMajor());
+        System.out.printf("%-18s: %s%n", "Status", selected.getStatus());
+        System.out.printf("%-18s: %s%n", "Applied At", selected.getAppliedAt());
         System.out.println("────────────────────────────────────────────────────────────\n");
 
-        System.out.println("(1) Approve Internship Application");
-        System.out.println("(2) Reject Internship Application");
-        System.out.println("(0) Cancel");
-        System.out.print("Enter choice: ");
-        String choice = sc.nextLine().trim();
+        String decision;
+        boolean approve;
 
-        switch (choice) {
-            case "1" -> applicationService.decideApplication(rep, sel, true);
-            case "2" -> applicationService.decideApplication(rep, sel, false);
-            case "0" -> { /* back */ }
-            default -> System.out.println("✗ invalid choice.");
+        while (true) {
+            System.out.print("\nApprove this internship application? (y/n): ");
+            decision = sc.nextLine().trim().toLowerCase();
+
+            if (decision.equals("y") || decision.equals("yes")) {
+                approve = true;
+                break;
+            } 
+            if (decision.equals("n") || decision.equals("no")) {
+                approve = false;
+                break;
+            }
+
+            System.out.println("✗ Invalid input. Please try again.\n");
         }
 
-        System.out.print("\nPress enter to return... ");
-        sc.nextLine();
+        applicationService.decideApplication(rep, selected, approve);
+
+        ConsoleUI.sectionHeader("Company Representative View");
     }
 
     private void createOpportunity() {
@@ -255,8 +264,24 @@ public class CompanyRepView {
             return;
         }
 
-        System.out.print("Title: ");
-        String title = sc.nextLine().trim();
+        String title = "";
+        while (true) {
+            System.out.print("Title (leave blank to cancel): ");
+            title = sc.nextLine().trim();
+
+            if (title.isEmpty()) {
+                System.out.println("Creation cancelled.\n");
+                ConsoleUI.sectionHeader("Company Representative View");
+                return;
+            }
+
+            if (title.length() < 3) {
+                System.out.println("✗ Title must be at least 3 characters.\n");
+                continue;
+            }
+
+            break;  // valid
+        }
 
         System.out.print("Description: ");
         String description = sc.nextLine().trim();
@@ -436,27 +461,38 @@ public class CompanyRepView {
             }
 
             System.out.println();
-            System.out.print("Do you want to edit another internship opportunity? (y/n): ");
-            String again = sc.nextLine().trim().toLowerCase();
-            continueEditing = again.equals("y") || again.equals("yes");
+            while (true) {
+                System.out.print("Do you want to edit another internship opportunity? (y/n): ");
+                String again = sc.nextLine().trim().toLowerCase();
+
+                if (again.equals("y") || again.equals("yes")) {
+                    continueEditing = true;
+                    break;
+                }
+
+                if (again.equals("n") || again.equals("no")) {
+                    continueEditing = false;
+                    ConsoleUI.sectionHeader("Company Representative View");
+                    return;
+                }
+
+                System.out.println("✗ Invalid choice. Please try again.\n");
+            }
         }
     }
 
     private void deleteOpportunity() {
-
-        boolean continueDeleting = true;
-
-        while (continueDeleting) {
+        while (true) {
             ConsoleUI.sectionHeader("Company Representative View > Delete Pending Internship Opportunity");
 
-            // only pending opportunities owned by this rep (not approved yet)
+            // only pending opportunities owned by this rep
             List<InternshipOpportunity> myOpps = opportunityService.getAllOpportunities().stream()
                     .filter(o -> rep.equals(o.getRepInCharge()))
                     .filter(o -> o.getStatus() == OpportunityStatus.PENDING)
                     .collect(Collectors.toList());
 
             if (myOpps.isEmpty()) {
-                System.out.println("✗ No pending internship opportunities available for editing.\n");
+                System.out.println("✗ No pending internship opportunities available for deletion.\n");
                 ConsoleUI.sectionHeader("Company Representative View");
                 return;
             }
@@ -473,44 +509,71 @@ public class CompanyRepView {
             int i = 1;
             for (InternshipOpportunity o : myOpps) {
                 System.out.printf(
-                    "%-4s %-15s %-25s %-20s %-20s %-20s %-15s %-15s %-15s%n",
+                    "%-4d %-15s %-25s %-20s %-20s %-20s %-15d %-15s %-15s%n",
                     i++,
                     o.getId(),
                     o.getTitle(),
-                    String.valueOf(o.getLevel()),
+                    o.getLevel(),
                     o.getCompanyName(),
-                    String.valueOf(o.getPreferredMajor()),
+                    o.getPreferredMajor(),
                     o.getSlots(),
                     o.getOpenDate(),
                     o.getCloseDate()
                 );
             }
-            System.out.println();
-            System.out.print("Enter Opportunity ID to delete (leave blank to cancel): ");
-            String id = sc.nextLine().trim();
 
-            if (id.isEmpty()) {
+            // prompt repeatedly for a valid ID
+            InternshipOpportunity existing = null;
+
+            while (true) {
+                System.out.print("\nEnter Opportunity ID to delete (leave blank to cancel): ");
+                String id = sc.nextLine().trim();
+
+                if (id.isEmpty()) {
+                    System.out.println("Deletion cancelled.\n");
+                    ConsoleUI.sectionHeader("Company Representative View");
+                    return;
+                }
+
+                existing = opportunityService.findById(id);
+
+                if (existing == null || !rep.equals(existing.getRepInCharge())) {
+                    System.out.println("✗ Invalid Opportunity ID. Please try again.\n");
+                    continue;
+                }
+
+                break; // valid
+            }
+
+            // confirm deletion
+            System.out.printf("Are you sure you want to delete '%s' (%s)? (y/n): ",
+                    existing.getTitle(), existing.getId());
+            String confirm = sc.nextLine().trim().toLowerCase();
+
+            if (confirm.equals("y") || confirm.equals("yes")) {
+                opportunityService.deleteOpportunity(rep, existing.getId());
+            } else {
+                System.out.println("Deletion cancelled.\n");
                 ConsoleUI.sectionHeader("Company Representative View");
                 return;
             }
 
-            InternshipOpportunity existing = opportunityService.findById(id);
+            // ask if they want to delete another
+            while (true) {
+                System.out.print("\nDo you want to delete another internship opportunity? (y/n): ");
+                String again = sc.nextLine().trim().toLowerCase();
 
-            if (existing == null) {
-                System.out.println("✗ Opportunity not found.\n");
-            } else {
-                System.out.printf("Are you sure you want to delete '%s' (%s)? (y/n): ",
-                        existing.getTitle(), existing.getId());
-                String confirm = sc.nextLine().trim().toLowerCase();
-                if (confirm.equals("y") || confirm.equals("yes")) {
-                    opportunityService.deleteOpportunity(rep, existing.getId());
+                if (again.equals("y") || again.equals("yes")) {
+                    break; // loop continues
                 }
-            }
 
-            // ask to continue
-            System.out.print("\nDo you want to delete another internship opportunity? (y/n): ");
-            String again = sc.nextLine().trim().toLowerCase();
-            continueDeleting = again.equals("y") || again.equals("yes");
+                if (again.equals("n") || again.equals("no")) {
+                    ConsoleUI.sectionHeader("Company Representative View");
+                    return; // exit immediately
+                }
+
+                System.out.println("✗ Invalid choice. Please try again.\n");
+            }
         }
     }
 
@@ -523,7 +586,7 @@ public class CompanyRepView {
                 .collect(Collectors.toList());
 
         if (myOpps.isEmpty()) {
-            System.out.println("✗ you currently have no internship opportunities.\n");
+            System.out.println("✗ You currently have no internship opportunities.\n");
             ConsoleUI.sectionHeader("company representative view");
             return;
         }
@@ -556,24 +619,51 @@ public class CompanyRepView {
             );
         }
 
-        // prompt user
-        System.out.print("\nEnter Opportunity ID to toggle visibility (leave blank to cancel): ");
-        String id = sc.nextLine().trim();
-        if (id.isEmpty()) {
-            ConsoleUI.sectionHeader("Company Representative View");
-            return;
-        }
+        // prompt user repeatedly until valid
+        InternshipOpportunity opp = null;
 
-        InternshipOpportunity opp = opportunityService.findById(id);
-        if (opp == null) {
-            System.out.println("✗ Opportunity ID not found.");
-            ConsoleUI.sectionHeader("Company Representative View");
-            return;
+        while (true) {
+            System.out.print("\nEnter Opportunity ID to toggle visibility (leave blank to cancel): ");
+            String id = sc.nextLine().trim();
+
+            if (id.isEmpty()) {
+                System.out.println("Action cancelled.\n");
+                ConsoleUI.sectionHeader("Company Representative View");
+                return;
+            }
+
+            opp = opportunityService.findById(id);
+
+            if (opp == null) {
+                System.out.println("✗ Invalid Opportunity ID. Please try again.\n");
+                continue; // ask again
+            }
+
+            // cannot toggle rejected opportunities
+            if (opp.getStatus() == OpportunityStatus.REJECTED) {
+                System.out.println("✗ You cannot change visibility for a REJECTED opportunity. Please try again.");
+                continue;
+            }
+
+            // cannot toggle pending opportunities
+            if (opp.getStatus() == OpportunityStatus.PENDING) {
+                System.out.println("✗ Visibility cannot be changed until this opportunity is APPROVED. Please try again.");
+                continue;
+            }
+
+            // cannot toggle filled opportunities
+            if (opp.getStatus() == OpportunityStatus.FILLED) {
+                System.out.println("✗ You cannot change visibility for a FILLED opportunity. Please try again.");
+                continue;
+            }
+
+            // if it reaches here → valid selection
+            break;
         }
 
         boolean newState = !opp.isVisible();
         opportunityService.toggleVisibility(opp, newState);
-        System.out.println("✓ Visibility for '" + opp.getTitle() + "' changed to " + (newState ? "on" : "off") + ".\n");
+        System.out.println("✓ Visibility for '" + opp.getTitle() + "' changed to " + (newState ? "ON" : "OFF") + ".\n");
 
         System.out.print("Press enter to return... ");
         sc.nextLine();
@@ -620,6 +710,57 @@ public class CompanyRepView {
 
         System.out.print("Press enter key to continue... ");
         sc.nextLine(); 
+        ConsoleUI.sectionHeader("Company Representative View");
+    }
+
+    private void viewAllApplications() {
+        ConsoleUI.sectionHeader("Company Representative View > View All Internship Applications");
+        System.out.println();
+
+        // fetch all applications belonging to this rep (including non-active)
+        List<Application> myApps = applicationService.getApplicationsByRepresentative(rep);
+
+        if (myApps.isEmpty()) {
+            System.out.println("✗ No applications found.\n");
+            System.out.print("Press enter to return... ");
+            sc.nextLine();
+            ConsoleUI.sectionHeader("Company Representative View");
+            return;
+        }
+
+        // table header
+        System.out.printf(
+            "%-4s %-15s %-15s %-15s %-20s %-20s %-20s %-20s %-15s %-12s%n",
+            "S/N", "Application ID", "Student ID", "Opportunity ID",
+            "Internship Title", "Internship Level", "Company",
+            "Status", "Available Slots", "Applied At"
+        );
+        System.out.println("--------------------------------------------------------------------------------------------------------------------------------------------------------------------");
+
+        int i = 1;
+        for (Application a : myApps) {
+            InternshipOpportunity o = a.getOpportunity();
+            String slotsStr = String.format("%d/%d", o.getConfirmedSlots(), o.getSlots());
+
+            System.out.printf(
+                "%-4d %-15s %-15s %-15s %-20s %-20s %-20s %-20s %-15s %-12s%n",
+                i++,
+                a.getId(),
+                a.getStudent().getId(),
+                o.getId(),
+                o.getTitle(),
+                o.getLevel(),
+                o.getCompanyName(),
+                a.getStatus(),
+                slotsStr,
+                a.getAppliedAt()
+            );
+        }
+
+        System.out.println("\n(Total: " + myApps.size() + " internship applications)\n");
+
+        System.out.print("Press enter to return... ");
+        sc.nextLine();
         ConsoleUI.sectionHeader("Company Representative View");
     }
 
