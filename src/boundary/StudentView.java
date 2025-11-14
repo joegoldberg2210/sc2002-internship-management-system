@@ -14,6 +14,7 @@ import entity.Application;
 import entity.InternshipOpportunity;
 import entity.Student;
 import entity.User;
+import entity.WithdrawalRequest;
 import enumerations.ApplicationStatus;
 import enumerations.InternshipLevel;
 import ui.ConsoleUI;
@@ -63,6 +64,7 @@ public class StudentView {
                 case "4" -> viewPendingInternshipOffers();
                 case "5" -> viewAcceptedInternship();
                 case "6" -> withdrawApplication();
+                case "7" -> viewMyWithdrawalRequests();
                 case "logout" -> {
                     System.out.println("\n✓ You have logged out of your account.\n");
                     return;
@@ -79,6 +81,7 @@ public class StudentView {
         System.out.println("(4) View Pending Internship Offers");
         System.out.println("(5) View Accepted Internship Placement");
         System.out.println("(6) Withdraw Internship Application");
+        System.out.println("(7) View My Withdrawal Requests");
         System.out.println();
         System.out.println("→ Type 'logout' here to logout");
         System.out.println();
@@ -316,38 +319,40 @@ public class StudentView {
         }
         System.out.println();
 
-        System.out.print("Enter Application ID to request withdrawal (blank to cancel): ");
-        String appId = sc.nextLine().trim();
-        if (appId.isEmpty()) {
-            System.out.println("Withdrawal request cancelled.\n");
-            ConsoleUI.sectionHeader("Student View");
-            return;
-        }
+        Application selected = null;
 
-        Application selected = eligible.stream()
-                .filter(a -> a.getId().equalsIgnoreCase(appId))
-                .findFirst().orElse(null);
-        if (selected == null) {
-            System.out.println("✗ Invalid Application ID.\n");
-            System.out.print("Press enter to return... ");
-            sc.nextLine();
-            ConsoleUI.sectionHeader("Student View");
-            return;
+        while (true) {
+            System.out.print("Enter Application ID to request withdrawal (blank to cancel): ");
+            String appId = sc.nextLine().trim();
+
+            if (appId.isEmpty()) {
+                System.out.println("Withdrawal request cancelled.\n");
+                ConsoleUI.sectionHeader("Student View");
+                return;
+            }
+
+            selected = eligible.stream()
+                    .filter(a -> a.getId().equalsIgnoreCase(appId))
+                    .findFirst()
+                    .orElse(null);
+
+            if (selected != null) break;
+
+            System.out.println("✗ Invalid Application ID. Please try again.\n");
         }
 
         System.out.printf("Submit withdrawal request for '%s' at %s? (y/n): ",
-                selected.getOpportunity().getTitle(),
-                selected.getOpportunity().getCompanyName());
+        selected.getOpportunity().getTitle(),
+        selected.getOpportunity().getCompanyName());
         String confirm = sc.nextLine().trim().toLowerCase();
+
         if (!confirm.equals("y") && !confirm.equals("yes")) {
             System.out.println("Withdrawal request cancelled.\n");
             ConsoleUI.sectionHeader("Student View");
             return;
         }
 
-        boolean ok = applicationService.submitWithdrawalRequest(student, selected);
-        if (ok) System.out.println("✓ Withdrawal request submitted.");
-        else    System.out.println("✗ Unable to submit withdrawal request.");
+        applicationService.submitWithdrawalRequest(student, selected);
 
         System.out.print("Press enter to return... ");
         sc.nextLine();
@@ -626,5 +631,55 @@ public class StudentView {
         } else {
             System.out.println("application cancelled.\n");
         }
+    }
+
+    private void viewMyWithdrawalRequests() {
+        ConsoleUI.sectionHeader("Student View > View My Withdrawal Requests");
+
+        // fetch all requests belonging to this student
+        List<WithdrawalRequest> requests =
+                applicationService.getRequestsForStudent(student);
+
+        if (requests.isEmpty()) {
+            System.out.println("✗ You have not submitted any withdrawal requests.\n");
+            System.out.print("Press enter to return... ");
+            sc.nextLine();
+            ConsoleUI.sectionHeader("Student View");
+            return;
+        }
+
+        // table header
+        System.out.printf("%-4s %-10s %-15s %-15s %-25s %-22s %-20s%n",
+                "S/N",
+                "Request ID",
+                "Application ID",
+                "Opportunity ID",
+                "Internship Title",
+                "Company",
+                "Status");
+
+        System.out.println("--------------------------------------------------------------------------------------------------------");
+
+        int i = 1;
+        for (WithdrawalRequest req : requests) {
+            Application app = req.getApplication();
+            InternshipOpportunity opp = app.getOpportunity();
+
+            System.out.printf("%-4d %-10s %-15s %-15s %-25s %-22s %-20s%n",
+                    i++,
+                    req.getId(),
+                    app.getId(),
+                    opp.getId(),
+                    opp.getTitle(),
+                    opp.getCompanyName(),
+                    req.getStatus());
+        }
+
+        System.out.println();
+        System.out.println("(Total: " + requests.size() + " withdrawal request(s))\n");
+
+        System.out.print("Press enter to return... ");
+        sc.nextLine();
+        ConsoleUI.sectionHeader("Student View");
     }
 }

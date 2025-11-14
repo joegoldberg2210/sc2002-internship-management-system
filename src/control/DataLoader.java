@@ -19,6 +19,7 @@ public class DataLoader {
     private static final String USERS_FILE         = SERIALIZED_FOLDER + "/users.ser";
     private static final String OPPORTUNITIES_FILE = SERIALIZED_FOLDER + "/opportunities.ser";
     private static final String APPLICATIONS_FILE = SERIALIZED_FOLDER + "/applications.ser";
+    private static final String WITHDRAWALS_FILE = SERIALIZED_FOLDER + "/withdrawals.ser";
 
     /* load saved users if available; else load from csv and save */
     public List<User> loadUsers() {
@@ -42,6 +43,29 @@ public class DataLoader {
             System.out.println("saved users to " + new File(USERS_FILE));
         } catch (IOException e) {
             System.err.println("error saving users: " + e.getMessage());
+        }
+    }
+
+    /* load saved withdrawal requests if available; else start with empty list */
+    public List<WithdrawalRequest> loadWithdrawalRequests() {
+        List<WithdrawalRequest> saved = loadSavedWithdrawals();
+        if (!saved.isEmpty()) {
+            System.out.println("loaded withdrawal requests from saved data (" + WITHDRAWALS_FILE + ")");
+            return saved;
+        }
+
+        System.out.println("no saved withdrawal request data found. starting with empty list...");
+        return new ArrayList<>();
+    }
+
+    /* write all withdrawal requests (pending, approved, rejected) */
+    public void saveWithdrawalRequests(List<WithdrawalRequest> requests) {
+        ensureFolder(SERIALIZED_FOLDER);
+        try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(WITHDRAWALS_FILE))) {
+            out.writeObject(requests);
+            System.out.println("saved withdrawal requests to " + new File(WITHDRAWALS_FILE));
+        } catch (IOException e) {
+            System.err.println("error saving withdrawal requests: " + e.getMessage());
         }
     }
 
@@ -242,6 +266,25 @@ public class DataLoader {
         } catch (IOException | ClassNotFoundException e) {
             System.err.println("error loading saved applications: " + e.getMessage());
         }
+        return new ArrayList<>();
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<WithdrawalRequest> loadSavedWithdrawals() {
+        File f = new File(WITHDRAWALS_FILE);
+        if (!f.exists()) {
+            return new ArrayList<>();
+        }
+
+        try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(f))) {
+            Object obj = in.readObject();
+            if (obj instanceof List<?>) {
+                return (List<WithdrawalRequest>) obj;
+            }
+        } catch (IOException | ClassNotFoundException e) {
+            System.err.println("error loading withdrawals: " + e.getMessage());
+        }
+
         return new ArrayList<>();
     }
 }

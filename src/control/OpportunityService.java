@@ -160,7 +160,7 @@ public class OpportunityService {
         opp.setStatus(OpportunityStatus.APPROVED);
         opp.setVisibility(true);
         save();
-        System.out.println("✓ approved by " + staff.getName() + ".");
+        System.out.println("Opportunity ID (" + opp.getId() + ") approved by " + staff.getName() + ".");
     }
 
     /** reject an opportunity (no reason) */
@@ -168,7 +168,7 @@ public class OpportunityService {
         opp.setStatus(OpportunityStatus.REJECTED);
         opp.setVisibility(false);
         save();
-        System.out.println("✓ rejected by " + staff.getName() + ".");
+        System.out.println("Opportunity ID (" + opp.getId() + ") rejected by " + staff.getName() + ".");
     }
 
     // -------------------- system utilities --------------------

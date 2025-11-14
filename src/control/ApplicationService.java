@@ -18,10 +18,12 @@ public class ApplicationService {
 
     private final List<Application> applications;
     private final DataLoader loader;
+    private final List<WithdrawalRequest> withdrawalRequests;
 
     public ApplicationService(List<Application> applications, DataLoader loader) {
         this.applications = Objects.requireNonNull(applications);
         this.loader = Objects.requireNonNull(loader);
+        this.withdrawalRequests = new ArrayList<>(loader.loadWithdrawalRequests());
     }
 
     /** student applies for an opportunity; returns the created application or null on failure */
@@ -69,6 +71,7 @@ public class ApplicationService {
 
     private void save() {
         loader.saveApplications(applications);
+        loader.saveWithdrawalRequests(withdrawalRequests);
     }
 
     public List<Application> getSuccessfulOffersForStudent(Student student) {
@@ -198,8 +201,6 @@ public class ApplicationService {
         save(); // persist changes if needed
     }
 
-    private final List<WithdrawalRequest> withdrawalRequests = new ArrayList<>();
-
     /** check if an application already has a pending withdrawal request */
     public boolean hasPendingWithdrawal(Application application) {
         return withdrawalRequests.stream()
@@ -228,6 +229,9 @@ public class ApplicationService {
         String id = "WR-" + UUID.randomUUID().toString().substring(0, 6).toUpperCase();
         WithdrawalRequest request = new WithdrawalRequest(id, application, student);
         withdrawalRequests.add(request);
+
+        // persist applications + withdrawal requests
+        save();
 
         System.out.println("✓ withdrawal request submitted successfully (pending approval by career center staff).");
         return true;
@@ -279,5 +283,10 @@ public class ApplicationService {
         return withdrawalRequests.stream()
                 .filter(r -> r.getRequestedBy().equals(student))
                 .collect(Collectors.toList());
+    }
+
+    /** return all withdrawal requests (pending, approved, rejected) */
+    public List<WithdrawalRequest> getAllWithdrawalRequests() {
+        return new ArrayList<>(withdrawalRequests);
     }
 }

@@ -81,4 +81,15 @@ public class AccountApprovalService {
         }
         return pending;
     }
+
+    /** get all company representatives (pending, approved, rejected) */
+    public List<CompanyRepresentative> getAllCompanyReps() {
+        List<CompanyRepresentative> all = new ArrayList<>();
+        for (User u : users) {
+            if (u instanceof CompanyRepresentative cr) {
+                all.add(cr);
+            }
+        }
+        return all;
+    }
 }

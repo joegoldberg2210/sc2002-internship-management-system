@@ -2,6 +2,7 @@ package entity;
 
 import enumerations.*;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.*;
 
@@ -10,8 +11,8 @@ import java.util.*;
  * Each request records which application it belongs to, who requested it,
  * when it was made, and the staff who reviewed it.
  */
-public class WithdrawalRequest {
-
+public class WithdrawalRequest implements Serializable {
+    private static final long serialVersionUID = 1L;
     // === Attributes (from UML) ===
     private final String id;                          // Unique identifier for the withdrawal request
     private Application application;            // The application that the student wishes to withdraw from
