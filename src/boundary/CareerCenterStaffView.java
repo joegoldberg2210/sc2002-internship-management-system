@@ -136,7 +136,7 @@ public class CareerCenterStaffView {
 
         List<CompanyRepresentative> pending = approval.getPendingCompanyReps();
         if (pending == null || pending.isEmpty()) {
-            System.out.println("✗ No pending company representative registration(s).\n");
+            System.out.println("✗ No pending company representative registrations.\n");
             System.out.print("Press enter to continue... ");
             sc.nextLine();
             ConsoleUI.sectionHeader("Career Center Staff View");
@@ -349,18 +349,7 @@ public class CareerCenterStaffView {
         ConsoleUI.sectionHeader("Career Center Staff View");
     }
 
-    private int readIndex(int max) {
-        while (true) {
-            String s = sc.nextLine().trim();
-            if (s.matches("\\d+")) {
-                int v = Integer.parseInt(s);
-                if (v >= 0 && v <= max) return v;
-            }
-            System.out.print("Enter 0-" + max + ": ");
-        }
-    }
-
-     /** view all pending withdrawal requests and approve/reject them */
+    /** view all pending withdrawal requests and approve/reject them */
     private void reviewPendingWithdrawalRequests() {
         ConsoleUI.sectionHeader("Career Center Staff > View Pending Withdrawal Requests");
 
