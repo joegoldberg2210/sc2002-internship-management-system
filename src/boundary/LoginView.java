@@ -52,11 +52,6 @@ public class LoginView {
             } 
             // create account flow
             else if (menu.equals("2")) {
-                int role = selectRole();
-                if (role != 2) {
-                    System.out.println("\n✗ Only Company Representatives can register for an account.\n");
-                    continue;
-                }
                 registerCompanyRep(approval, auth);
             }
         }
@@ -66,7 +61,7 @@ public class LoginView {
     private String mainMenu() {
         System.out.println("What would you like to do?");
         System.out.println("(1) Login");
-        System.out.println("(2) Create New Account");
+        System.out.println("(2) Create Company Representative Account");
         System.out.println("→ Type '#' here to exit program");
         System.out.println();
         System.out.print("Enter choice: ");
