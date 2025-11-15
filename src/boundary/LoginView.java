@@ -109,10 +109,31 @@ public class LoginView {
 
     private String[] askCredentials(String role) {
         ConsoleUI.loginBox(role + " Login");
-        System.out.print(role + " ID: ");
-        String id = sc.nextLine().trim();
-        System.out.print("Password: ");
-        String pwd = sc.nextLine().trim();
+
+        String id;
+        while (true) {
+            System.out.print(role + " ID: ");
+            id = sc.nextLine().trim();
+
+            if (id.isEmpty()) {
+                System.out.println("✗ " + role + " ID cannot be empty.");
+                continue;
+            }
+            break;
+        }
+
+        String pwd;
+        while (true) {
+            System.out.print("Password: ");
+            pwd = sc.nextLine().trim();
+
+            if (pwd.isEmpty()) {
+                System.out.println("✗ Password cannot be empty.");
+                continue;
+            }
+            break;
+        }
+
         System.out.println();
         return new String[]{ id, pwd };
     }
