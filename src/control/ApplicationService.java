@@ -270,12 +270,31 @@ public class ApplicationService {
             }
 
             app.markWithdrawn();
+            System.out.println("debug: application status after approval = " + app.getStatus());
+
             System.out.println("✓ withdrawal request approved. application withdrawn.");
         } else {
             System.out.println("✓ withdrawal request rejected.");
         }
 
         save();
+    }
+
+    /** has this student ever applied to this opportunity (any status)? */
+    public boolean hasAnyApplicationForOpportunity(Student student, InternshipOpportunity opportunity) {
+        if (student == null || opportunity == null) return false;
+
+        String sid = student.getId();
+        String oid = opportunity.getId();
+
+        return applications.stream()
+                .anyMatch(a ->
+                        a.getStudent() != null &&
+                        a.getOpportunity() != null &&
+                        a.getStudent().getId().equalsIgnoreCase(sid) &&
+                        a.getOpportunity().getId().equalsIgnoreCase(oid) &&
+                        a.getStatus() != ApplicationStatus.WITHDRAWN
+                );
     }
 
     /** helper: view all withdrawal requests by a specific student */

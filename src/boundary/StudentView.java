@@ -698,6 +698,14 @@ public class StudentView {
             System.out.println("✗ Invalid opportunity ID. Please try again.\n");
         }
 
+        if (applicationService.hasAnyApplicationForOpportunity(student, selected)) {
+            System.out.println("✗ You have already applied for this internship before and cannot apply again.\n");
+            System.out.print("Press enter to return... ");
+            sc.nextLine();
+            ConsoleUI.sectionHeader("Student View");
+            return;
+        }
+
         // confirm apply
         String confirm;
         boolean proceed = false;
