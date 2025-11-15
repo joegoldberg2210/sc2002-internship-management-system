@@ -438,24 +438,33 @@ public class StudentView {
 
     // ───────────────────── listing + filter/sort/apply ─────────────────────
 
-    private List<InternshipOpportunity> queryAvailableWithFilters(Set<String> appliedOppIds) {
-        Comparator<InternshipOpportunity> cmp = switch (sortKey) {
-            case "SLOTS"   -> Comparator.<InternshipOpportunity>comparingInt(
-                    o -> o.getSlots() - o.getConfirmedSlots()).reversed();
-            case "LEVEL"   -> Comparator.comparing(o -> o.getLevel().name());
-            case "COMPANY" -> Comparator.comparing(InternshipOpportunity::getCompanyName, String.CASE_INSENSITIVE_ORDER);
-            case "OPEN"    -> Comparator.comparing(InternshipOpportunity::getOpenDate);
-            case "CLOSE"   -> Comparator.comparing(InternshipOpportunity::getCloseDate);
-            default        -> Comparator.comparing(InternshipOpportunity::getTitle, String.CASE_INSENSITIVE_ORDER);
-        };
-
+    private List<InternshipOpportunity> queryAvailableWithFilters() {
         return opportunityService.getAllOpportunities().stream()
-                .filter(o -> o.isOpenFor(student))                         // eligibility
-                .filter(o -> !appliedOppIds.contains(o.getId()))           // hide pending/successful apps
+                // only those open for this student
+                .filter(o -> o.isOpenFor(student))
+                // filter by level if set
                 .filter(o -> filtLevel == null || o.getLevel() == filtLevel)
+                // filter by company name if set
                 .filter(o -> filtCompany == null || filtCompany.isBlank()
                         || o.getCompanyName().toLowerCase().contains(filtCompany.toLowerCase()))
-                .sorted(cmp)
+                // apply sorting based on sortKey
+                .sorted((o1, o2) -> {
+                    switch (sortKey.toLowerCase()) {
+                        case "company" -> {
+                            return o1.getCompanyName().compareToIgnoreCase(o2.getCompanyName());
+                        }
+                        case "close" -> {
+                            return o1.getCloseDate().compareTo(o2.getCloseDate());
+                        }
+                        case "level" -> {
+                            return o1.getLevel().compareTo(o2.getLevel());
+                        }
+                        default -> {
+                            // default sort by opportunity id
+                            return o1.getId().compareToIgnoreCase(o2.getId());
+                        }
+                    }
+                })
                 .collect(Collectors.toList());
     }
 
@@ -515,12 +524,23 @@ public class StudentView {
     }
 
     private void viewAvailableInternships() {
-        ConsoleUI.sectionHeader("Student View > View & Apply Internships");
+        ConsoleUI.sectionHeader("Student View > View Available Internships");
 
-        // hide opportunities already applied to (pending/successful)
+        // quick check: are there any opportunities open for this student at all?
+        List<InternshipOpportunity> initialAvailable = opportunityService.getAllOpportunities().stream()
+                .filter(o -> o.isOpenFor(student))
+                .collect(Collectors.toList());
+
+        if (initialAvailable.isEmpty()) {
+            System.out.println("✗ No internship opportunities available for you.\n");
+            System.out.print("Press enter to return... ");
+            sc.nextLine();
+            ConsoleUI.sectionHeader("Student View");
+            return;
+        }
+
+        // set of opportunity ids the student has ever applied for (any status)
         Set<String> appliedOppIds = applicationService.getApplicationsForStudent(student).stream()
-                .filter(a -> a.getStatus() == ApplicationStatus.PENDING
-                        || a.getStatus() == ApplicationStatus.SUCCESSFUL)
                 .map(a -> a.getOpportunity().getId())
                 .collect(Collectors.toSet());
 
@@ -529,7 +549,8 @@ public class StudentView {
             boolean hasAccepted = myApps.stream()
                     .anyMatch(a -> a.getStatus() == ApplicationStatus.SUCCESSFUL && a.isAccepted());
 
-            List<InternshipOpportunity> available = queryAvailableWithFilters(appliedOppIds);
+            // use your existing filter/sort logic
+            List<InternshipOpportunity> available = queryAvailableWithFilters();
 
             // header line
             System.out.println("(current filter: level=" + (filtLevel == null ? "any" : filtLevel)
@@ -537,18 +558,19 @@ public class StudentView {
                     + ", sort=" + sortKey.toLowerCase() + ")");
             System.out.println();
 
-            // table
-            System.out.printf("%-4s %-15s %-25s %-20s %-20s %-20s %-15s %-15s%n",
+            System.out.printf("%-4s %-15s %-25s %-20s %-15s %-15s %-15s %-12s %-12s%n",
                     "S/N", "Opportunity ID", "Internship Title", "Internship Level",
-                    "Company", "Preferred Major", "Available Slots", "Close Date");
-            System.out.println("------------------------------------------------------------------------------------------------------------------------------------------------");
+                    "Company", "Preferred Major", "Available Slots", "Open Date", "Close Date");
+            System.out.println("---------------------------------------------------------------------------------------------------------------------------------------------");
+
             if (available.isEmpty()) {
-                System.out.println("✗ No internship opportunities match your current filters.\n");
+                System.out.println("✗ no internship opportunities match your current filters.\n");
             } else {
                 int i = 1;
                 for (InternshipOpportunity o : available) {
                     String slotsStr = String.format("%d/%d", o.getConfirmedSlots(), o.getSlots());
-                    System.out.printf("%-4d %-15s %-25s %-20s %-20s %-20s %-15s %-15s%n",
+
+                    System.out.printf("%-4s %-15s %-25s %-20s %-15s %-15s %-15s %-12s %-12s%n",
                             i++,
                             o.getId(),
                             o.getTitle(),
@@ -556,6 +578,7 @@ public class StudentView {
                             o.getCompanyName(),
                             String.valueOf(o.getPreferredMajor()),
                             slotsStr,
+                            o.getOpenDate(),
                             o.getCloseDate()
                     );
                 }
@@ -563,8 +586,8 @@ public class StudentView {
             }
 
             // simple menu
-            System.out.println("(1) Filter Available Internships");
-            System.out.println("(2) Sort Available Internships");
+            System.out.println("(1) filter available internships");
+            System.out.println("(2) sort available internships");
             System.out.println("(enter) back");
             System.out.print("choose: ");
             String cmd = sc.nextLine().trim();
@@ -574,10 +597,8 @@ public class StudentView {
                 return;
             } else if (cmd.equals("1")) {
                 openFilterMenu();
-                continue;
             } else if (cmd.equals("2")) {
                 openSortMenu();
-                continue;
             }
         }
     }
