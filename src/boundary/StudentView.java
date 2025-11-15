@@ -122,14 +122,42 @@ public class StudentView {
     private void changePassword() {
         ConsoleUI.sectionHeader("Student View > Manage Account > Change Password");
 
-        System.out.print("Enter current password: ");
-        String current = sc.nextLine().trim();
+        String current;
+        while (true) {
+            System.out.print("Enter current password: ");
+            current = sc.nextLine().trim();
+            if (current.isEmpty()) {
+                System.out.println("✗ Current password cannot be empty.\n");
+                continue;
+            }
+            break;
+        }
 
-        System.out.print("Enter new password: ");
-        String newPwd = sc.nextLine().trim();
+        String newPwd;
+        while (true) {
+            System.out.print("Enter new password: ");
+            newPwd = sc.nextLine().trim();
+            if (newPwd.isEmpty()) {
+                System.out.println("✗ New password cannot be empty.\n");
+                continue;
+            }
+            if (newPwd.equals(current)) {
+                System.out.println("✗ New password cannot be the same as your current password.");
+                continue;
+            }
+            break;
+        }
 
-        System.out.print("Confirm new password: ");
-        String confirm = sc.nextLine().trim();
+        String confirm;
+        while (true) {
+            System.out.print("Confirm new password: ");
+            confirm = sc.nextLine().trim();
+            if (confirm.isEmpty()) {
+                System.out.println("✗ Confirm new password cannot be empty.\n");
+                continue;
+            }
+            break;
+        }
 
         boolean successful = newPwd.equals(confirm) && student.changePassword(current, newPwd);
 
