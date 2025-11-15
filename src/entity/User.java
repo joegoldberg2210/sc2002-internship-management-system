@@ -10,12 +10,14 @@ public abstract class User implements Serializable {
     private final String id;
     private String name;
     private String password;
+    private boolean firstLogin;
 
     /** everyone starts with default password, which is "password" */
     protected User(String id, String name) {
         this.id = Objects.requireNonNull(id).trim();
         this.name = Objects.requireNonNull(name).trim();
         this.password = "password";
+        this.firstLogin = true;
     }
 
     /** returns the raw id as entered (for display). */
@@ -46,6 +48,30 @@ public abstract class User implements Serializable {
         if (!verifyPassword(Objects.requireNonNull(oldPwd))) return false;
         this.password = Objects.requireNonNull(newPwd);
         return true;
+    }
+
+    public boolean forceFirstTimePasswordChange(String newPwd) {
+        // only allowed if this is really the first login
+        if (!firstLogin) return false;
+
+        if (newPwd == null || newPwd.isBlank()) return false;
+
+        // don't allow reusing the default password
+        if ("password".equals(this.password) && "password".equals(newPwd)) {
+            return false;
+        }
+
+        this.password = newPwd;
+        this.firstLogin = false; 
+        return true;
+    }
+
+    public boolean isFirstLogin() {
+        return firstLogin;
+    }
+
+    public void setFirstLogin(boolean firstLogin) {
+        this.firstLogin = firstLogin;
     }
 
     /** define equality by canonical id so duplicates across user types are prevented. */

@@ -15,6 +15,7 @@ import entity.Student;
 import entity.CompanyRepresentative;
 import entity.CareerCenterStaff;
 import entity.User;
+import entity.WithdrawalRequest;
 import entity.Application;
 
 public class IPMSApp {

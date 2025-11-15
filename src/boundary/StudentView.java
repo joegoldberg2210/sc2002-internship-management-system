@@ -49,7 +49,12 @@ public class StudentView {
 
     // ─────────────────────────────────────────────────────────────────────
 
+
     public void run() {
+        while (student.isFirstLogin()) {
+            forceFirstTimePasswordChange();
+        }
+
         ConsoleUI.sectionHeader("Student View");
 
         while (true) {
@@ -162,6 +167,7 @@ public class StudentView {
         boolean successful = newPwd.equals(confirm) && student.changePassword(current, newPwd);
 
         if (successful) {
+            student.setFirstLogin(false);
             System.out.println("\n✓ Password changed successfully!");
             loader.saveUsers(users);
         } else {
@@ -727,5 +733,32 @@ public class StudentView {
         System.out.print("\nPress enter to return... ");
         sc.nextLine();
         ConsoleUI.sectionHeader("Student View");
+    }
+
+    private void forceFirstTimePasswordChange() {
+        System.out.println("\nYou are currently using the default password.");
+        System.out.println("Please change your password before accessing the system.\n");
+
+        while (student.isFirstLogin()) {
+
+            System.out.print("Enter new password: ");
+            String newPwd = sc.nextLine().trim();
+
+            System.out.print("Confirm new password: ");
+            String confirm = sc.nextLine().trim();
+
+            if (!newPwd.equals(confirm)) {
+                System.out.println("✗ Passwords do not match. please try again.\n");
+                continue;
+            }
+
+            if (!student.forceFirstTimePasswordChange(newPwd)) {
+                System.out.println("✗ Unable to change password. Please try again.\n");
+                continue;
+            }
+
+            loader.saveUsers(users);
+            System.out.println("\n✓ Password updated. You may now use the system.\n");
+        }
     }
 }

@@ -54,7 +54,7 @@ public class DataLoader {
             return saved;
         }
 
-        System.out.println("no saved withdrawal request data found. starting with empty list...");
+        System.out.println("no saved withdrawal request data found. returning empty list...");
         return new ArrayList<>();
     }
 
@@ -110,8 +110,9 @@ public class DataLoader {
                 }
                 Major majorEnum = parseMajor(major);
 
-                list.add(new Student(id, name, year, majorEnum));
-
+                Student s = new Student(id, name, year, majorEnum);
+                s.setFirstLogin(true);
+                list.add(s);
             }
         }
         return list;
@@ -132,7 +133,9 @@ public class DataLoader {
                 String name       = t[1].trim();
                 String department = t[3].trim();
 
-                list.add(new CareerCenterStaff(id, name, department));
+                CareerCenterStaff c = new CareerCenterStaff(id, name, department);
+                c.setFirstLogin(true);
+                list.add(c);
             }
         }
         return list;
@@ -162,7 +165,9 @@ public class DataLoader {
                     status = AccountStatus.PENDING;
                 }
 
-                list.add(new CompanyRepresentative(id, name, companyName, department, position, status));
+                CompanyRepresentative cr = new CompanyRepresentative(id, name, companyName, department, position, status);
+                cr.setFirstLogin(true);
+                list.add(cr);
             }
         }
         return list;

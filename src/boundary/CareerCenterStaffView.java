@@ -1,16 +1,12 @@
 package boundary;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Scanner;
 import java.util.stream.Collectors;
-import java.time.format.DateTimeFormatter;
 
 import control.AccountApprovalService;
 import control.DataLoader;
@@ -49,6 +45,10 @@ public class CareerCenterStaffView {
 
     public void run() {
         ConsoleUI.sectionHeader("Career Center Staff View");
+
+        while (staff.isFirstLogin()) {
+            forceFirstTimePasswordChange();
+        }
 
         boolean running = true;
         while (running) {
@@ -166,6 +166,7 @@ public class CareerCenterStaffView {
        boolean successful = newPwd.equals(confirm) && staff.changePassword(current, newPwd);
 
         if (successful) {
+            staff.setFirstLogin(false);
             System.out.println("\n✓ Password changed successfully!");
             loader.saveUsers(users);
             ConsoleUI.sectionHeader("Career Center Staff View");
@@ -973,6 +974,33 @@ public class CareerCenterStaffView {
 
         } catch (IOException e) {
             System.out.println("✗ failed to save report: " + e.getMessage());
+        }
+    }
+
+    private void forceFirstTimePasswordChange() {
+        System.out.println("\nYou are currently using the default password.");
+        System.out.println("Please change your password before accessing the system.\n");
+
+        while (staff.isFirstLogin()) {
+
+            System.out.print("Enter new password: ");
+            String newPwd = sc.nextLine().trim();
+
+            System.out.print("Confirm new password: ");
+            String confirm = sc.nextLine().trim();
+
+            if (!newPwd.equals(confirm)) {
+                System.out.println("✗ Passwords do not match. please try again.\n");
+                continue;
+            }
+
+            if (!staff.forceFirstTimePasswordChange(newPwd)) {
+                System.out.println("✗ Unable to change password. Please try again.\n");
+                continue;
+            }
+
+            loader.saveUsers(users);
+            System.out.println("\n✓ Password updated. You may now use the system.\n");
         }
     }
 }
