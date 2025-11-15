@@ -184,6 +184,36 @@ public class OpportunityService {
         save();
     }
 
+    public List<InternshipOpportunity> filter(List<InternshipOpportunity> all, FilterCriteria c) {
+        return all.stream()
+            .filter(o -> c.getStatus() == null || o.getStatus() == c.getStatus())
+            .filter(o -> c.getPreferredMajor() == null ||
+                        o.getPreferredMajor().name().equalsIgnoreCase(c.getPreferredMajor()))
+            .filter(o -> c.getLevel() == null || o.getLevel() == c.getLevel())
+            .filter(o -> c.getCompany() == null ||
+                        o.getCompanyName().toLowerCase().contains(c.getCompany().toLowerCase()))
+            .filter(o -> c.getClosingDateBefore() == null ||
+                        o.getCloseDate().isBefore(c.getClosingDateBefore().toInstant()
+                                                                .atZone(java.time.ZoneId.systemDefault())
+                                                                .toLocalDate()))
+            .collect(java.util.stream.Collectors.toList());
+    }
+
+    public void sort(List<InternshipOpportunity> list, String key, boolean descending) {
+        java.util.Comparator<InternshipOpportunity> cmp;
+
+        switch (key) {
+            case "company" -> cmp = java.util.Comparator.comparing(InternshipOpportunity::getCompanyName);
+            case "slots"   -> cmp = java.util.Comparator.comparingInt(InternshipOpportunity::getSlots);
+            case "open"    -> cmp = java.util.Comparator.comparing(InternshipOpportunity::getOpenDate);
+            case "close"   -> cmp = java.util.Comparator.comparing(InternshipOpportunity::getCloseDate);
+            default        -> cmp = java.util.Comparator.comparing(InternshipOpportunity::getTitle);
+        }
+
+        if (descending) cmp = cmp.reversed();
+        list.sort(cmp);
+    }
+
     // -------------------- persistence --------------------
 
     private void save() {

@@ -33,6 +33,11 @@ public class CareerCenterStaffView {
     private final OpportunityService oppService;
     private final ApplicationService applicationService;
 
+    // persistent filter + sort for "view all internship opportunities"
+    private final FilterCriteria allOppFilter = new FilterCriteria();
+    private String allOppSortKey = "title";      // "title", "company", "slots", "openDate", "closeDate"
+    private boolean allOppSortDescending = false;
+
     public CareerCenterStaffView(Scanner sc, CareerCenterStaff staff, List<User> users, DataLoader loader, AccountApprovalService approval, OpportunityService oppService, ApplicationService applicationService) {
         this.sc = sc;
         this.staff = staff;
@@ -114,13 +119,9 @@ public class CareerCenterStaffView {
         System.out.println("Name       : " + staff.getName());
         System.out.println("Department : " + staff.getStaffDepartment());
         System.out.println();
-        System.out.println("(0) Back to Career Center Staff View to Manage Account");
-        System.out.println();
-        System.out.print("Enter choice: ");
-        String choice = sc.nextLine().trim();
-        switch (choice) {
-            case "0" -> ConsoleUI.sectionHeader("Career Center Staff View > Manage Account");
-        }
+        System.out.print("Press enter key to continue... ");
+        sc.nextLine();
+        ConsoleUI.sectionHeader("Career Center Staff View");
     }
 
     private void changePassword() {
@@ -476,46 +477,370 @@ public class CareerCenterStaffView {
     private void viewAllInternshipOpportunities() {
         ConsoleUI.sectionHeader("Career Center Staff View > View All Internship Opportunities");
 
-        List<InternshipOpportunity> all = oppService.getAllOpportunities();
-        if (all == null || all.isEmpty()) {
-            System.out.println("✗ No internship opportunities found.\n");
-            System.out.print("Press enter to return... ");
-            sc.nextLine();
-            ConsoleUI.sectionHeader("Career Center Staff View");
-            return;
+        while (true) {
+            List<InternshipOpportunity> all = oppService.getAllOpportunities();
+
+            if (all == null || all.isEmpty()) {
+                System.out.println("✗ No internship opportunities found.\n");
+                System.out.print("Press enter to return... ");
+                sc.nextLine();
+                ConsoleUI.sectionHeader("Career Center Staff View");
+                return;
+            }
+
+            // apply filters using allOppFilter (status, level, preferred major, company)
+            List<InternshipOpportunity> filtered = all.stream()
+                    .filter(o -> allOppFilter.getStatus() == null
+                            || o.getStatus() == allOppFilter.getStatus())
+                    .filter(o -> allOppFilter.getLevel() == null
+                            || o.getLevel() == allOppFilter.getLevel())
+                    .filter(o -> allOppFilter.getPreferredMajor() == null
+                            || o.getPreferredMajor().name()
+                                    .equalsIgnoreCase(allOppFilter.getPreferredMajor()))
+                    .filter(o -> allOppFilter.getCompany() == null
+                            || o.getCompanyName().toLowerCase()
+                                    .contains(allOppFilter.getCompany().toLowerCase()))
+                    .collect(Collectors.toList());
+
+            // apply sorting
+            Comparator<InternshipOpportunity> cmp;
+            if ("company".equalsIgnoreCase(allOppSortKey)) {
+                cmp = Comparator.comparing(InternshipOpportunity::getCompanyName,
+                        String.CASE_INSENSITIVE_ORDER);
+            } else if ("slots".equalsIgnoreCase(allOppSortKey)) {
+                cmp = Comparator.comparingInt(InternshipOpportunity::getSlots);
+            } else if ("openDate".equalsIgnoreCase(allOppSortKey)) {
+                cmp = Comparator.comparing(InternshipOpportunity::getOpenDate);
+            } else if ("closeDate".equalsIgnoreCase(allOppSortKey)) {
+                cmp = Comparator.comparing(InternshipOpportunity::getCloseDate);
+            } else {
+                cmp = Comparator.comparing(InternshipOpportunity::getTitle,
+                        String.CASE_INSENSITIVE_ORDER);
+                allOppSortKey = "title";
+            }
+            if (allOppSortDescending) {
+                cmp = cmp.reversed();
+            }
+            filtered.sort(cmp);
+
+            // show current filter + sort + table
+            printAllOppFilterAndSort(allOppFilter, allOppSortKey, allOppSortDescending);
+            printAllOpportunitiesTable(filtered);
+
+            System.out.println("(1) Edit Filter");
+            System.out.println("(2) Edit Sort");
+            System.out.println("(0) Reset Filter & Sort");
+            System.out.print("Enter choice (blank to cancel): ");
+            String choice = sc.nextLine().trim();
+
+            if (choice.isEmpty()) {
+                ConsoleUI.sectionHeader("Career Center Staff View");
+                return;
+            } else if ("1".equals(choice)) {
+                // edit filter menu
+                while (true) {
+                    System.out.println();
+                    System.out.println("Filter opportunities by:");
+                    System.out.println("(1) Internship Level");
+                    System.out.println("(2) Opportunity Status");
+                    System.out.println("(3) Preferred Major");
+                    System.out.println("(4) Company");
+                    System.out.print("Enter choice (blank to cancel): ");
+                    String f = sc.nextLine().trim();
+
+                    if (f.isEmpty()) {
+                        break;
+                    }
+
+                    // ---- internship level ----
+                    if ("1".equals(f)) {
+                        System.out.println();
+                        System.out.println("Select Internship Level:");
+                        System.out.println("(1) Basic");
+                        System.out.println("(2) Intermediate");
+                        System.out.println("(3) Advanced");
+                        System.out.print("Enter choice (blank to cancel): ");
+                        String lv = sc.nextLine().trim();
+
+                        switch (lv) {
+                            case "1":
+                                allOppFilter.setLevel(InternshipLevel.BASIC);
+                                System.out.println("✓ Internship level filter set to BASIC.\n");
+                                break;
+                            case "2":
+                                allOppFilter.setLevel(InternshipLevel.INTERMEDIATE);
+                                System.out.println("✓ Internship level filter set to INTERMEDIATE.\n");
+                                break;
+                            case "3":
+                                allOppFilter.setLevel(InternshipLevel.ADVANCED);
+                                System.out.println("✓ Internship level filter set to ADVANCED.\n");
+                                break;
+                            case "":
+                                System.out.println("Internship level filter unchanged.\n");
+                                break;
+                            default:
+                                System.out.println("✗ Invalid choice.\n");
+                                break;
+                        }
+                        break;
+                    }
+
+                    // ---- opportunity status ----
+                    else if ("2".equals(f)) {
+                        System.out.println();
+                        System.out.println("Select opportunity status:");
+                        System.out.println("(1) Pending");
+                        System.out.println("(2) Approved");
+                        System.out.println("(3) Filled");
+                        System.out.println("(4) Rejected");
+                        System.out.print("Enter choice (blank to cancel): ");
+                        String sf = sc.nextLine().trim();
+
+                        switch (sf) {
+                            case "1":
+                                allOppFilter.setStatus(OpportunityStatus.PENDING);
+                                System.out.println("✓ Status filter set to PENDING.\n");
+                                break;
+                            case "2":
+                                allOppFilter.setStatus(OpportunityStatus.APPROVED);
+                                System.out.println("✓ Status filter set to APPROVED.\n");
+                                break;
+                            case "3":
+                                allOppFilter.setStatus(OpportunityStatus.FILLED);
+                                System.out.println("✓ Status filter set to FILLED.\n");
+                                break;
+                            case "4":
+                                allOppFilter.setStatus(OpportunityStatus.REJECTED);
+                                System.out.println("✓ Status filter set to REJECTED.\n");
+                                break;
+                            case "":
+                                System.out.println("Opportunity status filter unchanged.\n");
+                                break;
+                            default:
+                                System.out.println("✗ Invalid choice.\n");
+                                break;
+                        }
+                        break;
+                    }
+
+                    // ---- preferred major ----
+                    else if ("3".equals(f)) {
+                        System.out.println();
+                        System.out.println("Select Preferred Major:");
+                        System.out.println("(1) CSC");
+                        System.out.println("(2) DSAI");
+                        System.out.println("(3) CEG");
+                        System.out.println("(4) IEM");
+                        System.out.println("(5) BCG");
+                        System.out.println("(6) BCE");
+                        System.out.print("Enter choice (blank to cancel): ");
+                        String mj = sc.nextLine().trim();
+
+                        switch (mj) {
+                            case "1":
+                                allOppFilter.setPreferredMajor("CSC");
+                                System.out.println("✓ Preferred major filter set to CSC.\n");
+                                break;
+                            case "2":
+                                allOppFilter.setPreferredMajor("DSAI");
+                                System.out.println("✓ Preferred major filter set to DSAI.\n");
+                                break;
+                            case "3":
+                                allOppFilter.setPreferredMajor("CEG");
+                                System.out.println("✓ Preferred major filter set to CEG.\n");
+                                break;
+                            case "4":
+                                allOppFilter.setPreferredMajor("IEM");
+                                System.out.println("✓ Preferred major filter set to IEM.\n");
+                                break;
+                            case "5":
+                                allOppFilter.setPreferredMajor("BCG");
+                                System.out.println("✓ Preferred major filter set to BCG.\n");
+                                break;
+                            case "6":
+                                allOppFilter.setPreferredMajor("BCE");
+                                System.out.println("✓ Preferred major filter set to BCE.\n");
+                                break;
+                            case "":
+                                System.out.println("Preferred major filter unchanged.\n");
+                                break;
+                            default:
+                                System.out.println("✗ Invalid choice.\n");
+                                break;
+                        }
+                        break;
+                    }
+
+                    // ---- company name ----
+                    else if ("4".equals(f)) {
+                        System.out.println();
+                        System.out.print("Enter company keyword (blank to cancel): ");
+                        String kw = sc.nextLine().trim();
+
+                        if (kw.isEmpty()) {
+                            System.out.println("Company filter unchanged.\n");
+                        } else {
+                            allOppFilter.setCompany(kw);
+                            System.out.println("✓ Company filter updated.\n");
+                        }
+                        break;
+                    }
+                }
+
+            } else if ("2".equals(choice)) {
+                // edit sort
+                System.out.println();
+                System.out.println("Sort opportunities by:");
+                System.out.println("(1) Internship title");
+                System.out.println("(2) Company");
+                System.out.println("(3) Number of Slots");
+                System.out.println("(4) Open Date");
+                System.out.println("(5) Close Date");
+                System.out.print("Enter choice (blank to cancel): ");
+                String s = sc.nextLine().trim();
+
+                if (!s.isEmpty()) {
+                    if ("1".equals(s)) {
+                        allOppSortKey = "title";
+                    } else if ("2".equals(s)) {
+                        allOppSortKey = "company";
+                    } else if ("3".equals(s)) {
+                        allOppSortKey = "slots";
+                    } else if ("4".equals(s)) {
+                        allOppSortKey = "openDate";
+                    } else if ("5".equals(s)) {
+                        allOppSortKey = "closeDate";
+                    } else {
+                        System.out.println("✗ Invalid choice. Keeping previous sorting.\n");
+                    }
+
+                    if ("1".equals(s) || "2".equals(s) || "3".equals(s)
+                            || "4".equals(s) || "5".equals(s)) {
+                        System.out.println();
+                        System.out.println("Sort order:");
+                        System.out.println("(1) Ascending");
+                        System.out.println("(2) Descending");
+                        System.out.print("Enter choice (blank = ascending): ");
+                        String order = sc.nextLine().trim();
+
+                        if (order.isEmpty() || "1".equals(order)) {
+                            allOppSortDescending = false;
+                        } else if ("2".equals(order)) {
+                            allOppSortDescending = true;
+                        } else {
+                            System.out.println("✗ Invalid choice. Keeping previous order.\n");
+                        }
+                    }
+                }
+
+            } else if ("0".equals(choice)) {
+                // reset filter & sort
+                allOppFilter.setStatus(null);
+                allOppFilter.setLevel(null);
+                allOppFilter.setPreferredMajor(null);
+                allOppFilter.setCompany(null);
+                allOppFilter.setClosingDateBefore(null);
+
+                allOppSortKey = "title";
+                allOppSortDescending = false;
+
+                System.out.println("\n✓ Filters and sorting reset to default.\n");
+            } else {
+                System.out.println("✗ Invalid choice. Please try again.\n");
+            }
+        }
+    }
+
+    private void printAllOppFilterAndSort(FilterCriteria filter,
+                                        String sortKey,
+                                        boolean sortDescending) {
+        StringBuilder fb = new StringBuilder("Current Filters: ");
+        boolean any = false;
+
+        if (filter.getStatus() != null) {
+            fb.append("Status = ")
+            .append(filter.getStatus().name().toLowerCase())
+            .append("  ");
+            any = true;
+        }
+        if (filter.getLevel() != null) {
+            fb.append("Internship Level = ")
+            .append(filter.getLevel().name().toLowerCase())
+            .append("  ");
+            any = true;
+        }
+        if (filter.getPreferredMajor() != null && !filter.getPreferredMajor().isEmpty()) {
+            fb.append("Preferred Major = ")
+            .append(filter.getPreferredMajor().toLowerCase())
+            .append("  ");
+            any = true;
+        }
+        if (filter.getCompany() != null && !filter.getCompany().trim().isEmpty()) {
+            fb.append("Company contains \"")
+            .append(filter.getCompany())
+            .append("\"  ");
+            any = true;
         }
 
-        // table header
+        if (!any) {
+            fb = new StringBuilder("Current filters: none");
+        }
+
+        String sortLabel;
+        if ("company".equalsIgnoreCase(sortKey)) {
+            sortLabel = "Company";
+        } else if ("slots".equalsIgnoreCase(sortKey)) {
+            sortLabel = "Number of Slots";
+        } else if ("openDate".equalsIgnoreCase(sortKey)) {
+            sortLabel = "Open Date";
+        } else if ("closeDate".equalsIgnoreCase(sortKey)) {
+            sortLabel = "Close Date";
+        } else {
+            sortLabel = "Internship Title";
+        }
+
+        String sortInfo = "Current Sorting: "
+                + sortLabel
+                + " (" + (sortDescending ? "Descending" : "Ascending") + ")";
+
+        System.out.println(fb.toString());
+        System.out.println(sortInfo);
         System.out.println();
+    }
+
+    private void printAllOpportunitiesTable(List<InternshipOpportunity> list) {
         System.out.printf(
-            "%-4s %-15s %-25s %-20s %-20s %-20s %-20s %-12s %-16s %-16s%n",
-            "S/N", "Opportunity ID", "Internship Title", "Preferred Major", "Internship Level", "Number of Slots", "Company", "Open Date", "Closing Date", "Status"
+                "%-4s %-15s %-25s %-20s %-20s %-20s %-20s %-12s %-16s %-16s%n",
+                "S/N", "Opportunity ID", "Internship Title", "Preferred Major",
+                "Internship Level", "Number of Slots", "Company",
+                "Open Date", "Closing Date", "Status"
         );
         System.out.println("--------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
 
+        if (list.isEmpty()) {
+            System.out.println("✗ No internship opportunities match your current filters.\n");
+            return;
+        }
+
         int i = 1;
-        for (InternshipOpportunity o : all) {
+        for (InternshipOpportunity o : list) {
             String slotsStr = String.format("%d/%d", o.getConfirmedSlots(), o.getSlots());
             System.out.printf(
-                "%-4d %-15s %-25s %-20s %-20s %-20s %-20s %-12s %-16s %-16s%n",
-                i++,
-                o.getId(),
-                o.getTitle(),
-                String.valueOf(o.getPreferredMajor()),
-                String.valueOf(o.getLevel()),
-                slotsStr,
-                o.getCompanyName(),
-                String.valueOf(o.getOpenDate()),
-                String.valueOf(o.getCloseDate()),
-                o.getStatus()
+                    "%-4d %-15s %-25s %-20s %-20s %-20s %-20s %-12s %-16s %-16s%n",
+                    i++,
+                    o.getId(),
+                    o.getTitle(),
+                    String.valueOf(o.getPreferredMajor()),
+                    String.valueOf(o.getLevel()),
+                    slotsStr,
+                    o.getCompanyName(),
+                    String.valueOf(o.getOpenDate()),
+                    String.valueOf(o.getCloseDate()),
+                    o.getStatus()
             );
         }
 
-        System.out.println("\n(Total: " + all.size() + " internship opportunities)\n");
-
-        System.out.print("Press enter to return... ");
-        sc.nextLine();
-        ConsoleUI.sectionHeader("Career Center Staff View");
+        System.out.println("\n(Total: " + list.size() + " internship opportunities)\n");
     }
 
     /** view all withdrawal requests (read-only) */
@@ -791,7 +1116,7 @@ public class CareerCenterStaffView {
         if (result.isEmpty()) {
 
             // current filters
-            StringBuilder current = new StringBuilder("current filters: ");
+            StringBuilder current = new StringBuilder("Current Filters: ");
             boolean noFilter = true;
 
             if (statusFilter[0] != null) {
