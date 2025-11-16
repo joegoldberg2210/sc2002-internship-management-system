@@ -1,10 +1,13 @@
 package ui;
 
 public final class ConsoleUI {
-    public static final int WIDTH = 50; // change once, all screens follow
+    public static final int WIDTH = 50;
 
     private ConsoleUI() {}
 
+    /** 
+     * @param title
+     */
     public static void loginBox(String title) {
         System.out.println();
         int width = 40; 
@@ -32,6 +35,9 @@ public final class ConsoleUI {
         System.out.println();
     }
 
+    /** 
+     * @param title
+     */
     public static void sectionHeader(String title) {
         int width = 75;
         int paddingLeft = 2;
@@ -51,6 +57,10 @@ public final class ConsoleUI {
         System.out.println(bottom);
     }
 
+    /** 
+     * @param ch
+     * @param n
+     */
     public static void repeat(char ch, int n) {
         for (int i = 0; i < n; i++) System.out.print(ch);
     }

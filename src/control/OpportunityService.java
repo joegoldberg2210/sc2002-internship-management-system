@@ -24,7 +24,11 @@ public class OpportunityService {
         this.loader = Objects.requireNonNull(loader, "Loader must not be null");
     }
 
-    /** returns all opportunities matching filtercriteria, restricted to those open for the student */
+    /** 
+     * @param s
+     * @param fc
+     * @return List<InternshipOpportunity>
+     */
     public List<InternshipOpportunity> findBy(Student s, FilterCriteria fc) {
         return getAllOpportunities().stream()
                 .filter(o -> o.isOpenFor(s))
@@ -44,22 +48,23 @@ public class OpportunityService {
                 .collect(Collectors.toList());
     }
 
-    // -------------------- company rep actions --------------------
-
-    /** create a new internship opportunity (auto-generates unique id and rejects duplicates) */
+    /** 
+     * @param rep
+     * @param opp
+     * @return boolean
+     */
     public boolean createOpportunity(CompanyRepresentative rep, InternshipOpportunity opp) {
         if (rep == null || opp == null) {
             System.out.println("✗ Invalid data.");
             return false;
         }
 
-        // generate a unique internship id in the format ITP-xxxxxx
         String newId;
         do {
             newId = "ITP-" + UUID.randomUUID().toString().substring(0, 6).toUpperCase();
-        } while (findById(newId) != null); // ensure no duplicates
+        } while (findById(newId) != null);
 
-        opp.setId(newId); // assign generated id
+        opp.setId(newId);
 
         opp.setRepInCharge(rep);
         opp.setStatus(OpportunityStatus.PENDING);
@@ -73,7 +78,10 @@ public class OpportunityService {
         return true;
     }
 
-    /** edit an existing opportunity (only if rep owns it) */
+    /** 
+     * @param rep
+     * @param updated
+     */
     public void editOpportunity(CompanyRepresentative rep, InternshipOpportunity updated) {
         InternshipOpportunity existing = findById(updated.getId());
 
@@ -87,7 +95,6 @@ public class OpportunityService {
         existing.setCloseDate(updated.getCloseDate());
         existing.setSlots(updated.getSlots());
 
-        // any edit requires re-approval
         existing.setStatus(OpportunityStatus.PENDING);
         existing.setVisibility(false);
 
@@ -95,7 +102,10 @@ public class OpportunityService {
         System.out.println("✓ Opportunity updated and sent for re-approval.");
     }
 
-    /** delete an opportunity (only by the owning rep and only if status is pending) */
+    /** 
+     * @param rep
+     * @param id
+     */
     public void deleteOpportunity(CompanyRepresentative rep, String id) {
         InternshipOpportunity existing = findById(id);
 
@@ -104,7 +114,10 @@ public class OpportunityService {
         System.out.println("✓ Opportunity deleted.");
     }
 
-    /** toggle visibility (call from appropriate ui; no ownership check here) */
+    /** 
+     * @param opp
+     * @param visible
+     */
     public void toggleVisibility(InternshipOpportunity opp, boolean visible) {
         if (opp == null) {
             System.out.println("✗ Opportunity not found.");
@@ -115,8 +128,10 @@ public class OpportunityService {
         System.out.println(visible ? "✓ Now visible to students." : "✓ Hidden from students.");
     }
 
-    // -------------------- lookups --------------------
-
+    /** 
+     * @param id
+     * @return InternshipOpportunity
+     */
     public InternshipOpportunity findById(String id) {
         return opportunities.stream()
                 .filter(o -> o.getId().equalsIgnoreCase(id))
@@ -124,37 +139,50 @@ public class OpportunityService {
                 .orElse(null);
     }
 
+    /** 
+     * @param companyName
+     * @return List<InternshipOpportunity>
+     */
     public List<InternshipOpportunity> getByCompany(String companyName) {
         return opportunities.stream()
                 .filter(o -> o.getCompanyName().equalsIgnoreCase(companyName))
                 .collect(Collectors.toList());
     }
 
-    /** filter by preferred major (enum) */
+    /** 
+     * @param major
+     * @return List<InternshipOpportunity>
+     */
     public List<InternshipOpportunity> getByMajor(Major major) {
         return opportunities.stream()
                 .filter(o -> o.getPreferredMajor() == major)
                 .collect(Collectors.toList());
     }
 
-    /** convenience getters */
     public List<InternshipOpportunity> getAllOpportunities() { return opportunities; }
 
+    /** 
+     * @return List<InternshipOpportunity>
+     */
     public List<InternshipOpportunity> getPending() {
         return opportunities.stream()
             .filter(o -> o.getStatus() == OpportunityStatus.PENDING)
             .collect(Collectors.toList());
     }
 
+    /** 
+     * @return List<InternshipOpportunity>
+     */
     public List<InternshipOpportunity> getApproved() {
         return opportunities.stream()
             .filter(o -> o.getStatus() == OpportunityStatus.APPROVED)
             .collect(Collectors.toList());
     }
 
-    // -------------------- staff actions --------------------
-
-    /** approve an opportunity */
+    /** 
+     * @param staff
+     * @param opp
+     */
     public void approveOpportunity(CareerCenterStaff staff, InternshipOpportunity opp) {
         opp.setStatus(OpportunityStatus.APPROVED);
         opp.setVisibility(true);
@@ -162,7 +190,10 @@ public class OpportunityService {
         System.out.println("Opportunity ID (" + opp.getId() + ") approved by " + staff.getName() + ".");
     }
 
-    /** reject an opportunity (no reason) */
+    /** 
+     * @param staff
+     * @param opp
+     */
     public void rejectOpportunity(CareerCenterStaff staff, InternshipOpportunity opp) {
         opp.setStatus(OpportunityStatus.REJECTED);
         opp.setVisibility(false);
@@ -170,9 +201,9 @@ public class OpportunityService {
         System.out.println("Opportunity ID (" + opp.getId() + ") rejected by " + staff.getName() + ".");
     }
 
-    // -------------------- system utilities --------------------
-
-    /** check if all slots are filled and update status accordingly */
+    /** 
+     * @param opp
+     */
     public void recomputeFilledStatus(InternshipOpportunity opp) {
         if (opp.getConfirmedSlots() >= opp.getSlots()) {
             opp.setStatus(OpportunityStatus.FILLED);
@@ -183,6 +214,11 @@ public class OpportunityService {
         save();
     }
 
+    /** 
+     * @param all
+     * @param c
+     * @return List<InternshipOpportunity>
+     */
     public List<InternshipOpportunity> filter(List<InternshipOpportunity> all, FilterCriteria c) {
         return all.stream()
             .filter(o -> c.getStatus() == null || o.getStatus() == c.getStatus())
@@ -198,6 +234,11 @@ public class OpportunityService {
             .collect(java.util.stream.Collectors.toList());
     }
 
+    /** 
+     * @param list
+     * @param key
+     * @param descending
+     */
     public void sort(List<InternshipOpportunity> list, String key, boolean descending) {
         java.util.Comparator<InternshipOpportunity> cmp;
 
@@ -212,8 +253,6 @@ public class OpportunityService {
         if (descending) cmp = cmp.reversed();
         list.sort(cmp);
     }
-
-    // -------------------- persistence --------------------
 
     private void save() {
         loader.saveOpportunities(opportunities);

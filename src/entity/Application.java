@@ -5,13 +5,12 @@ import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.Objects;
 
-/** represents one student's application to one internship opportunity. */
 public class Application implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private final String id;
-    private final Student student;                   // linked student
-    private final InternshipOpportunity opportunity; // linked internship
+    private final Student student;                   
+    private final InternshipOpportunity opportunity; 
     private ApplicationStatus status;
     private final LocalDate appliedAt;
     private LocalDate decisionAt;
@@ -26,57 +25,81 @@ public class Application implements Serializable {
         this.accepted = false;
     }
 
-    /** company rep approves or rejects an application. */
+    /** 
+     * @param approve
+     */
     public void markDecision(boolean approve) {
         this.status = approve ? ApplicationStatus.SUCCESSFUL : ApplicationStatus.UNSUCCESSFUL;
         this.decisionAt = LocalDate.now();
         if (!approve) this.accepted = false;
     }
 
-    /** student accepts a successful offer. */
     public void markAccepted() {
         if (this.status != ApplicationStatus.SUCCESSFUL)
             throw new IllegalStateException("cannot accept unless status is SUCCESSFUL.");
         this.accepted = true;
     }
 
-    /** student withdraws their application. */
     public void markWithdrawn() {
         this.status = ApplicationStatus.WITHDRAWN;
         this.accepted = false;
         this.decisionAt = LocalDate.now();
     }
 
-    /** true if this application is still pending review. */
+    /** 
+     * @return boolean
+     */
     public boolean isActive() {
         return this.status == ApplicationStatus.PENDING;
     }
 
-    // --- getters ---
+    /** 
+     * @return String
+     */
 
     public String getId() { 
         return id; 
     }
+    /** 
+     * @return Student
+     */
     public Student getStudent() { 
         return student; 
     }
+    /** 
+     * @return InternshipOpportunity
+     */
     public InternshipOpportunity getOpportunity() { 
         return opportunity; 
     }
+    /** 
+     * @return ApplicationStatus
+     */
     public ApplicationStatus getStatus() { 
         return status; 
     }
+    /** 
+     * @return LocalDate
+     */
     public LocalDate getAppliedAt() { 
         return appliedAt; 
     }
+    /** 
+     * @return LocalDate
+     */
     public LocalDate getDecisionAt() { 
         return decisionAt; 
     }
+    /** 
+     * @return boolean
+     */
     public boolean isAccepted() { 
         return accepted; 
     }
 
-    // optional for easier debugging
+    /** 
+     * @return String
+     */
     @Override
     public String toString() {
         return String.format("application[%s] student=%s, opp=%s, status=%s",

@@ -4,31 +4,24 @@ import enumerations.*;
 
 import java.io.Serializable;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.*;
 
-/**
- * Represents an internship opportunity created by a Company Representative.
- * Includes details such as title, description, level, and status as well as operational methods to check if it is open or editable.
- */
+
 public class InternshipOpportunity implements Serializable {
     private static final long serialVersionUID = 1L;
-    private String id;                         // Unique ID of the internship
-    private String title;                      // Internship title
-    private String description;                // Brief description of the internship
-    private InternshipLevel level;             // Internship difficulty level (Basic, Intermediate, Advanced)
-    private Major preferredMajor;             // Preferred major of applicants
-    private LocalDate openDate;                     // Opening date for applications
-    private LocalDate closeDate;                    // Closing date for applications
-    private OpportunityStatus status;          // Current status (Pending, Approved, Rejected, Filled)
-    private final String companyName;                // Name of the company offering the internship
-    private boolean visibility;                // Determines if internship is visible to students
-    private int slots;                         // Maximum number of available positions
-    private int confirmedSlots;                // Number of slots already filled
-    private CompanyRepresentative repInCharge; // Company Representative managing this opportunity
+    private String id;                        
+    private String title;                      
+    private String description;               
+    private InternshipLevel level;             
+    private Major preferredMajor;             
+    private LocalDate openDate;                     
+    private LocalDate closeDate;                    
+    private OpportunityStatus status;          
+    private final String companyName;               
+    private boolean visibility;                
+    private int slots;                         
+    private int confirmedSlots;               
+    private CompanyRepresentative repInCharge; 
 
-
-    // === Constructor ===
     public InternshipOpportunity(String id, String title, String description, InternshipLevel level, Major preferredMajor, LocalDate openDate, LocalDate closeDate, String companyName, int slots, CompanyRepresentative repInCharge) {
         this.id = id;
         this.title = title;
@@ -41,170 +34,229 @@ public class InternshipOpportunity implements Serializable {
         this.slots = slots;
         this.repInCharge = repInCharge;
 
-        // Default values on creation
         this.status = OpportunityStatus.PENDING;
         this.visibility = false;
         this.confirmedSlots = 0;
     }
 
-    // === Operational Methods ===
+    /** 
+     * @param s
+     * @return boolean
+     */
 
     public boolean isOpenFor(Student s) {
         if (s == null) return false;
-        if (status != OpportunityStatus.APPROVED) return false;   // must be approved
-        if (!visibility) return false;                            // must be visible
+        if (status != OpportunityStatus.APPROVED) return false;  
+        if (!visibility) return false;                           
         var today = java.time.LocalDate.now();
-        if (today.isBefore(openDate) || today.isAfter(closeDate)) return false; // in window
-        if (!hasVacancy()) return false;                          // slots left
-        return isEligibleFor(s);                                  // major + level rules
+        if (today.isBefore(openDate) || today.isAfter(closeDate)) return false;
+        if (!hasVacancy()) return false;                        
+        return isEligibleFor(s);                              
     }
 
+    /** 
+     * @param s
+     * @return boolean
+     */
     public boolean isEligibleFor(Student s) {
-        // assuming preferredMajor is an enum Major
         if (s.getMajor() != preferredMajor) return false;
 
-        // year rule: y1-2 basic only; y3+ any level
         if (s.getYearOfStudy() <= 2) return level == InternshipLevel.BASIC;
         return true;
     }
 
-
-    /**
-     * Checks if there are still available slots for students.
-     */
     public boolean hasVacancy() {
         return confirmedSlots < slots;
     }
 
-    /**
-     * Determines if the internship can be edited by the representative.
-     */
     public boolean isEditable() {
         return status == OpportunityStatus.PENDING || status == OpportunityStatus.REJECTED;
     }
 
-    /**
-     * Updates the confirmed slot count when a student is accepted.
-     */
     public void incrementConfirmedSlots() {
         if (confirmedSlots < slots)
             confirmedSlots++;
     }
 
-    /**
-     * Resets the confirmed slots (e.g., when an opportunity is reopened).
-     */
     public void resetConfirmedSlots() {
         this.confirmedSlots = 0;
     }
 
-    // === Getters and Setters ===
-
+    /** 
+     * @return String
+     */
     public String getId() {
         return id;
     }
 
+    /** 
+     * @return String
+     */
     public String getTitle() {
         return title;
     }
 
+    /** 
+     * @return String
+     */
     public String getDescription() {
         return description;
     }
 
+    /** 
+     * @return InternshipLevel
+     */
     public InternshipLevel getLevel() {
         return level;
     }
 
+    /** 
+     * @return Major
+     */
     public Major getPreferredMajor() { 
         return preferredMajor; 
     }
 
+    /** 
+     * @return LocalDate
+     */
     public LocalDate getOpenDate() {
         return openDate;
     }
 
+    /** 
+     * @return LocalDate
+     */
     public LocalDate getCloseDate() {
         return closeDate;
     }
 
+    /** 
+     * @return OpportunityStatus
+     */
     public OpportunityStatus getStatus() {
         return status;
     }
 
+    /** 
+     * @return String
+     */
     public String getCompanyName() {
         return companyName;
     }
 
+    /** 
+     * @return boolean
+     */
     public boolean isVisible() {
         return visibility;
     }
 
+    /** 
+     * @return int
+     */
     public int getSlots() {
         return slots;
     }
 
+    /** 
+     * @return int
+     */
     public int getConfirmedSlots() {
         return confirmedSlots;
     }
 
+    /** 
+     * @return CompanyRepresentative
+     */
     public CompanyRepresentative getRepInCharge() {
         return repInCharge;
     }
 
+    /** 
+     * @param id
+     */
     public void setId(String id) { 
         this.id = id; 
     }
 
+    /** 
+     * @param status
+     */
     public void setStatus(OpportunityStatus status) {
         this.status = status;
     }
 
+    /** 
+     * @param visibility
+     */
     public void setVisibility(boolean visibility) {
         this.visibility = visibility;
     }
 
+    /** 
+     * @param description
+     */
     public void setDescription(String description) {
         this.description = description;
     }
 
+    /** 
+     * @param title
+     */
     public void setTitle(String title) {
         this.title = title;
     }
 
+    /** 
+     * @param preferredMajor
+     */
     public void setPreferredMajor(Major preferredMajor) { 
         this.preferredMajor = preferredMajor;
     }
 
+    /** 
+     * @param level
+     */
     public void setLevel(InternshipLevel level) {
         this.level = level;
     }
 
+    /** 
+     * @param openDate
+     */
     public void setOpenDate(LocalDate openDate) {
         this.openDate = openDate;
     }
 
+    /** 
+     * @param closeDate
+     */
     public void setCloseDate(LocalDate closeDate) {
         this.closeDate = closeDate;
     }
 
+    /** 
+     * @param slots
+     */
     public void setSlots(int slots) {
         this.slots = slots;
     }
 
+    /** 
+     * @param repInCharge
+     */
     public void setRepInCharge(CompanyRepresentative repInCharge) {
         this.repInCharge = repInCharge;
     }
 
+    /** 
+     * @param confirmedSlots
+     */
     public void setConfirmedSlots(int confirmedSlots) {
         this.confirmedSlots = confirmedSlots;
     }
 
-    // === toString() ===
-
-    /**
-     * Provides a human-readable summary of the internship opportunity.
-     */
     @Override
     public String toString() {
         return String.format("[%s] %s (%s) - %s | Slots: %d/%d | Status: %s",

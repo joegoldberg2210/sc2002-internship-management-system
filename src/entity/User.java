@@ -3,7 +3,6 @@ package entity;
 import java.io.Serializable;
 import java.util.Objects;
 
-/** base class for all users. */
 public abstract class User implements Serializable {
     private static final long serialVersionUID = 1L;
 
@@ -12,7 +11,6 @@ public abstract class User implements Serializable {
     private String password;
     private boolean firstLogin;
 
-    /** everyone starts with default password, which is "password" */
     protected User(String id, String name) {
         this.id = Objects.requireNonNull(id).trim();
         this.name = Objects.requireNonNull(name).trim();
@@ -20,43 +18,63 @@ public abstract class User implements Serializable {
         this.firstLogin = true;
     }
 
-    /** returns the raw id as entered (for display). */
+    /** 
+     * @return String
+     */
     public String getId() {
         return id;
     }
 
-    /** returns the canonical form (lowercase + trimmed) for comparisons. */
+    /** 
+     * @param raw
+     * @return String
+     */
     public static String canonical(String raw) {
         return raw == null ? "" : raw.trim().toLowerCase();
     }
 
+    /** 
+     * @return String
+     */
     public String getName() {
         return name;
     }
 
+    /** 
+     * @param name
+     */
     public void setName(String name) {
         this.name = Objects.requireNonNull(name).trim();
     }
 
-    /** returns true if supplied password matches the current password. */
+    /** 
+     * @param pwd
+     * @return boolean
+     */
     public boolean verifyPassword(String pwd) {
         return Objects.equals(this.password, pwd);
     }
 
-    /** change password only if old password matches. */
+    /** 
+     * @param oldPwd
+     * @param newPwd
+     * @return boolean
+     */
     public boolean changePassword(String oldPwd, String newPwd) {
         if (!verifyPassword(Objects.requireNonNull(oldPwd))) return false;
         this.password = Objects.requireNonNull(newPwd);
         return true;
     }
 
+    /** 
+     * @param newPwd
+     * @return boolean
+     */
     public boolean forceFirstTimePasswordChange(String newPwd) {
-        // only allowed if this is really the first login
         if (!firstLogin) return false;
 
         if (newPwd == null || newPwd.isBlank()) return false;
 
-        // don't allow reusing the default password
         if ("password".equals(this.password) && "password".equals(newPwd)) {
             return false;
         }
@@ -66,15 +84,24 @@ public abstract class User implements Serializable {
         return true;
     }
 
+    /** 
+     * @return boolean
+     */
     public boolean isFirstLogin() {
         return firstLogin;
     }
 
+    /** 
+     * @param firstLogin
+     */
     public void setFirstLogin(boolean firstLogin) {
         this.firstLogin = firstLogin;
     }
 
-    /** define equality by canonical id so duplicates across user types are prevented. */
+    /** 
+     * @param o
+     * @return boolean
+     */
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -83,6 +110,9 @@ public abstract class User implements Serializable {
         return canonical(this.id).equals(canonical(other.id));
     }
 
+    /** 
+     * @return int
+     */
     @Override
     public int hashCode() {
         return canonical(this.id).hashCode();

@@ -26,10 +26,9 @@ public class StudentView {
     private final OpportunityService opportunityService;
     private final ApplicationService applicationService;
 
-    // persistent filter + sort for "view available internships"
     private final FilterCriteria availableFilter = new FilterCriteria();
-    private String availableSortKey = "title";       // "title", "company", "slots", "openDate", "closeDate"
-    private boolean availableSortDescending = false; // false = ascending
+    private String availableSortKey = "title";       
+    private boolean availableSortDescending = false; 
 
     public StudentView(Scanner sc,
                        Student student,
@@ -44,8 +43,6 @@ public class StudentView {
         this.opportunityService = opportunityService;
         this.applicationService = applicationService;
     }
-
-    // ─────────────────────────────────────────────────────────────────────
 
     public void run() {
         while (student.isFirstLogin()) {
@@ -106,8 +103,6 @@ public class StudentView {
         System.out.println("→ Type 'logout' here to logout");
         System.out.println();
     }
-
-    // ───────────────────────── account ─────────────────────────
 
     private void manageAccount() {
         ConsoleUI.sectionHeader("Student View > Manage Account");
@@ -196,18 +191,13 @@ public class StudentView {
         ConsoleUI.sectionHeader("Student View");
     }
 
-    // ───────────────────── view available (with filtercriteria) ─────────────────────
-
     private void viewAvailableInternships() {
         ConsoleUI.sectionHeader("Student View > View Available Internships");
 
-        // use persistent filter + sort so settings survive leaving/returning this menu
         while (true) {
-            // get opportunities open for this student using filtercriteria
             List<InternshipOpportunity> available =
                     opportunityService.findBy(student, availableFilter);
 
-            // apply sorting based on persistent sort key/order
             Comparator<InternshipOpportunity> cmp;
             if ("company".equalsIgnoreCase(availableSortKey)) {
                 cmp = Comparator.comparing(InternshipOpportunity::getCompanyName,
@@ -229,7 +219,6 @@ public class StudentView {
             }
             available.sort(cmp);
 
-            // show current filter/sort + table
             printCurrentFilterAndSort(availableFilter, availableSortKey, availableSortDescending);
             printAvailableInternshipsTable(available);
 
@@ -243,7 +232,6 @@ public class StudentView {
                 ConsoleUI.sectionHeader("Student View");
                 return;
             } else if ("1".equals(choice)) {
-                // edit filter menu
                 while (true) {
                     System.out.println();
                     System.out.println("Filter internships by:");
@@ -253,7 +241,6 @@ public class StudentView {
                     String f = sc.nextLine().trim();
 
                     if (f.isEmpty()) {
-                        // done editing filters, go back to main loop
                         break;
                     } else if ("1".equals(f)) {
                         System.out.println();
@@ -278,7 +265,6 @@ public class StudentView {
                         } else {
                             System.out.println("✗ Invalid choice.\n");
                         }
-                        // after each filter change / attempt, break back to main view loop
                         break;
 
                     } else if ("2".equals(f)) {
@@ -291,7 +277,6 @@ public class StudentView {
                             availableFilter.setCompany(kw);
                             System.out.println("✓ Company filter updated.\n");
                         }
-                        // after change / attempt, go back to main view loop
                         break;
 
                     } else {
@@ -300,7 +285,6 @@ public class StudentView {
                 }
 
             } else if ("2".equals(choice)) {
-                // edit sort
                 System.out.println();
                 System.out.println("Sort by:");
                 System.out.println("(1) Internship Title");
@@ -346,7 +330,6 @@ public class StudentView {
                 }
 
             } else if ("0".equals(choice)) {
-                // reset both filter and sort to defaults on persistent fields
                 availableFilter.setStatus(null);
                 availableFilter.setPreferredMajor(null);
                 availableFilter.setLevel(null);
@@ -363,6 +346,11 @@ public class StudentView {
         }
     }
 
+    /** 
+     * @param filter
+     * @param sortKey
+     * @param sortDescending
+     */
     private void printCurrentFilterAndSort(FilterCriteria filter,
                                            String sortKey,
                                            boolean sortDescending) {
@@ -408,6 +396,9 @@ public class StudentView {
         System.out.println();
     }
 
+    /** 
+     * @param available
+     */
     private void printAvailableInternshipsTable(List<InternshipOpportunity> available) {
         System.out.printf(
                 "%-4s %-15s %-25s %-20s %-20s %-20s %-20s %-12s %-12s%n",
@@ -440,8 +431,6 @@ public class StudentView {
         System.out.println();
         System.out.println("(Total: " + available.size() + " internship opportunities)\n");
     }
-
-    // ───────────────────── applications listing ─────────────────────
 
     private void viewApplications() {
         ConsoleUI.sectionHeader("Student View > View My Submitted Applications");
@@ -490,8 +479,6 @@ public class StudentView {
         sc.nextLine();
         ConsoleUI.sectionHeader("Student View");
     }
-
-    // ───────────────────── offers (accept / reject) ─────────────────────
 
     private void viewPendingInternshipOffers() {
         ConsoleUI.sectionHeader("Student View > View Pending Internship Offers");
@@ -583,8 +570,6 @@ public class StudentView {
         ConsoleUI.sectionHeader("Student View");
     }
 
-    // ───────────────────── withdrawals (request) ─────────────────────
-
     private void withdrawApplication() {
         ConsoleUI.sectionHeader("Student View > Withdraw Internship Applications");
 
@@ -659,8 +644,6 @@ public class StudentView {
         sc.nextLine();
         ConsoleUI.sectionHeader("Student View");
     }
-
-    // ───────────────────── accepted placement detail ─────────────────────
 
     private void viewAcceptedInternship() {
         ConsoleUI.sectionHeader("Student View > View Accepted Internship Placement");

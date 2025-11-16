@@ -1,18 +1,14 @@
 package control;
 
 import java.io.*;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
 import entity.*;
 import enumerations.AccountStatus;
-import enumerations.InternshipLevel;
 import enumerations.Major;
 
 public class DataLoader {
-
-    // keep csv inputs and serialized outputs in different folders
     private static final String DATA_FOLDER       = "data";
     private static final String SERIALIZED_FOLDER = "serialized";
 
@@ -21,7 +17,9 @@ public class DataLoader {
     private static final String APPLICATIONS_FILE = SERIALIZED_FOLDER + "/applications.ser";
     private static final String WITHDRAWALS_FILE = SERIALIZED_FOLDER + "/withdrawals.ser";
 
-    /* load saved users if available; else load from csv and save */
+    /** 
+     * @return List<User>
+     */
     public List<User> loadUsers() {
         List<User> saved = loadSavedUsers();
         if (!saved.isEmpty()) {
@@ -35,7 +33,9 @@ public class DataLoader {
         return users;
     }
 
-    /* write all users (students, staff, reps — including pending/approved/rejected) */
+    /** 
+     * @param users
+     */
     public void saveUsers(List<User> users) {
         ensureFolder(SERIALIZED_FOLDER);
         try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(USERS_FILE))) {
@@ -46,7 +46,9 @@ public class DataLoader {
         }
     }
 
-    /* load saved withdrawal requests if available; else start with empty list */
+    /** 
+     * @return List<WithdrawalRequest>
+     */
     public List<WithdrawalRequest> loadWithdrawalRequests() {
         List<WithdrawalRequest> saved = loadSavedWithdrawals();
         if (!saved.isEmpty()) {
@@ -58,7 +60,9 @@ public class DataLoader {
         return new ArrayList<>();
     }
 
-    /* write all withdrawal requests (pending, approved, rejected) */
+    /** 
+     * @param requests
+     */
     public void saveWithdrawalRequests(List<WithdrawalRequest> requests) {
         ensureFolder(SERIALIZED_FOLDER);
         try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(WITHDRAWALS_FILE))) {
@@ -69,12 +73,18 @@ public class DataLoader {
         }
     }
 
+    /** 
+     * @param folderPath
+     */
     private void ensureFolder(String folderPath) {
         File dir = new File(folderPath);
         if (!dir.exists()) dir.mkdirs();
     }
 
-    /* build users from csv files (students, staff, company reps) */
+    /** 
+     * @param folder
+     * @return List<User>
+     */
     private List<User> loadUsersFromCSV(String folder) {
         List<User> users = new ArrayList<>();
         try {
@@ -87,11 +97,15 @@ public class DataLoader {
         return users;
     }
 
-    /* csv: students */
+    /** 
+     * @param path
+     * @return List<Student>
+     * @throws IOException
+     */
     private List<Student> loadStudents(String path) throws IOException {
         List<Student> list = new ArrayList<>();
         try (BufferedReader br = new BufferedReader(new FileReader(path))) {
-            br.readLine(); // header
+            br.readLine(); 
             String line;
             while ((line = br.readLine()) != null) {
                 if (line.isBlank()) continue;
@@ -118,11 +132,15 @@ public class DataLoader {
         return list;
     }
 
-    /* csv: staff */
+    /** 
+     * @param path
+     * @return List<CareerCenterStaff>
+     * @throws IOException
+     */
     private List<CareerCenterStaff> loadStaff(String path) throws IOException {
         List<CareerCenterStaff> list = new ArrayList<>();
         try (BufferedReader br = new BufferedReader(new FileReader(path))) {
-            br.readLine(); // header
+            br.readLine(); 
             String line;
             while ((line = br.readLine()) != null) {
                 if (line.isBlank()) continue;
@@ -141,11 +159,15 @@ public class DataLoader {
         return list;
     }
 
-    /* csv: company representatives (status column optional; defaults to PENDING) */
+    /** 
+     * @param path
+     * @return List<CompanyRepresentative>
+     * @throws IOException
+     */
     private List<CompanyRepresentative> loadCompanyReps(String path) throws IOException {
         List<CompanyRepresentative> list = new ArrayList<>();
         try (BufferedReader br = new BufferedReader(new FileReader(path))) {
-            br.readLine(); // header
+            br.readLine(); 
             String line;
             while ((line = br.readLine()) != null) {
                 if (line.isBlank()) continue;
@@ -173,6 +195,9 @@ public class DataLoader {
         return list;
     }
 
+    /** 
+     * @return List<InternshipOpportunity>
+     */
     public List<InternshipOpportunity> loadOpportunities() {
         List<InternshipOpportunity> saved = loadSavedOpportunities();
         if (!saved.isEmpty()) {
@@ -183,6 +208,9 @@ public class DataLoader {
         return new ArrayList<>();
     }
 
+    /** 
+     * @param list
+     */
     public void saveOpportunities(List<InternshipOpportunity> list) {
         ensureFolder(SERIALIZED_FOLDER);
         try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(OPPORTUNITIES_FILE))) {
@@ -193,6 +221,9 @@ public class DataLoader {
         }
     }
 
+    /** 
+     * @return List<Application>
+     */
     public List<Application> loadApplications() {
         List<Application> saved = loadSavedApplications();
         if (!saved.isEmpty()) {
@@ -203,6 +234,9 @@ public class DataLoader {
         return new ArrayList<>();
     }
 
+    /** 
+     * @param list
+     */
     public void saveApplications(List<Application> list) {
         ensureFolder(SERIALIZED_FOLDER);
         try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(APPLICATIONS_FILE))) {
@@ -213,8 +247,10 @@ public class DataLoader {
         }
     }
 
-    /* ===== private helpers ===== */
-
+    /** 
+     * @param s
+     * @return Major
+     */
     private Major parseMajor(String s) {
         s = s.trim().toUpperCase();
 
@@ -229,6 +265,9 @@ public class DataLoader {
         }
     }
 
+    /** 
+     * @return List<User>
+     */
     @SuppressWarnings("unchecked")
     private List<User> loadSavedUsers() {
         File f = new File(USERS_FILE);
@@ -244,6 +283,9 @@ public class DataLoader {
         return new ArrayList<>();
     }
 
+    /** 
+     * @return List<InternshipOpportunity>
+     */
     @SuppressWarnings("unchecked")
     private List<InternshipOpportunity> loadSavedOpportunities() {
         File f = new File(OPPORTUNITIES_FILE);
@@ -259,6 +301,9 @@ public class DataLoader {
         return new ArrayList<>();
     }
 
+    /** 
+     * @return List<Application>
+     */
     @SuppressWarnings("unchecked")
     private List<Application> loadSavedApplications() {
         File f = new File(APPLICATIONS_FILE);
@@ -274,6 +319,9 @@ public class DataLoader {
         return new ArrayList<>();
     }
 
+    /** 
+     * @return List<WithdrawalRequest>
+     */
     @SuppressWarnings("unchecked")
     private List<WithdrawalRequest> loadSavedWithdrawals() {
         File f = new File(WITHDRAWALS_FILE);

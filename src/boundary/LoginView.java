@@ -12,7 +12,6 @@ import ui.ConsoleUI;
 public class LoginView {
     private final Scanner sc;
 
-    // constructor
     public LoginView(Scanner sc) {
         this.sc = sc;
     }
@@ -34,7 +33,6 @@ public class LoginView {
                 return null; 
             }
 
-            // login flow
             if (menu.equals("1")) {
                 int role = selectRole();
                 String roleName = roleName(role);
@@ -42,7 +40,6 @@ public class LoginView {
                 String[] creds = askCredentials(roleName);
                 if (creds[0].isEmpty()) continue;
 
-                // authenticate user credentials
                 User logged = auth.login(creds[0], creds[1], role);
                 if (logged != null) {
                     System.out.println(" ✓ " + roleName + " Login Successful!");
@@ -50,14 +47,12 @@ public class LoginView {
                 }
                 System.out.println("✗ Invalid ID or password. Please try again.\n");
             } 
-            // create account flow
             else if (menu.equals("2")) {
                 registerCompanyRep(approval, auth);
             }
         }
     }
 
-    // print main menu
     private String mainMenu() {
         System.out.println("What would you like to do?");
         System.out.println("(1) Login");
@@ -167,13 +162,11 @@ public class LoginView {
             System.out.print("Company Representative ID: ");
             String id = sc.nextLine().trim();
 
-            // check if email address is valid
             if (!id.matches("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$")) {
                 System.out.println("✗ Please enter a valid email address.");
                 continue;
             }
 
-            // check if the ID already exists in existing company representative records
             if (auth.userIdTaken(id)) {
                 System.out.println("✗ This ID is already registered with us. Please choose another ID.\n");
                 continue;

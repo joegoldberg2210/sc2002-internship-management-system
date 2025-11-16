@@ -22,7 +22,6 @@ import entity.WithdrawalRequest;
 import enumerations.InternshipLevel;
 import enumerations.Major;
 import enumerations.OpportunityStatus;
-import enumerations.Major;
 import ui.ConsoleUI;
 
 public class CareerCenterStaffView {
@@ -34,9 +33,8 @@ public class CareerCenterStaffView {
     private final OpportunityService oppService;
     private final ApplicationService applicationService;
 
-    // persistent filter + sort for "view all internship opportunities"
     private final FilterCriteria allOppFilter = new FilterCriteria();
-    private String allOppSortKey = "title";      // "title", "company", "slots", "openDate", "closeDate"
+    private String allOppSortKey = "title";     
     private boolean allOppSortDescending = false;
 
     public CareerCenterStaffView(Scanner sc, CareerCenterStaff staff, List<User> users, DataLoader loader, AccountApprovalService approval, OpportunityService oppService, ApplicationService applicationService) {
@@ -190,7 +188,6 @@ public class CareerCenterStaffView {
             return;
         }
 
-        // table header
         System.out.println();
         System.out.printf(
             "%-4s %-28s %-25s %-25s %-20s %-20s%n",
@@ -235,7 +232,6 @@ public class CareerCenterStaffView {
             System.out.println("✗ Invalid Company Representative ID. Please try again.\n");
         }
 
-        // detail block
         System.out.println("\n────────────────────────────────────────────────────────────");
         System.out.println("          Company Representative Application Details        ");
         System.out.println("────────────────────────────────────────────────────────────");
@@ -246,7 +242,6 @@ public class CareerCenterStaffView {
         System.out.printf("%-25s: %s%n", "Position", selected.getPosition());
         System.out.println("────────────────────────────────────────────────────────────\n");
 
-        // action menu
         System.out.print("\nApprove this company representative application? (y/n): ");
         String decision = sc.nextLine().trim().toLowerCase();
 
@@ -272,7 +267,6 @@ public class CareerCenterStaffView {
             return;
         }
 
-        // table header
         System.out.println();
         System.out.printf(
             "%-4s %-15s %-25s %-20s %-20s %-15s %-20s %-12s %-16s%n",
@@ -316,12 +310,11 @@ public class CareerCenterStaffView {
                     .findFirst()
                     .orElse(null);
 
-            if (selected != null) break; // success → exit loop
+            if (selected != null) break;
 
             System.out.println("✗ Invalid Opportunity ID. Please try again.\n");
         }
 
-        // detail view
         System.out.println();
         System.out.println("\n────────────────────────────────────────────────────────────");
         System.out.println("                 Internship Opportunity Details              ");
@@ -356,7 +349,6 @@ public class CareerCenterStaffView {
     private void viewAllRegistrations() {
         ConsoleUI.sectionHeader("Career Center Staff View > View All Company Representative Registrations");
 
-        // get all company representatives
         List<CompanyRepresentative> allReps = approval.getAllCompanyReps();
 
         if (allReps == null || allReps.isEmpty()) {
@@ -367,7 +359,6 @@ public class CareerCenterStaffView {
             return;
         }
 
-        // table header
         System.out.println();
         System.out.printf(
             "%-4s %-40s %-25s %-25s %-25s %-25s %-15s%n",
@@ -396,7 +387,6 @@ public class CareerCenterStaffView {
         ConsoleUI.sectionHeader("Career Center Staff View");
     }
 
-    /** view all pending withdrawal requests and approve/reject them */
     private void reviewPendingWithdrawalRequests() {
         ConsoleUI.sectionHeader("Career Center Staff > View Pending Withdrawal Requests");
 
@@ -450,7 +440,6 @@ public class CareerCenterStaffView {
             System.out.println("✗ Invalid Request ID. Please try again.\n");
         }
 
-        // print request details
         System.out.println("\n────────────────────────────────────────────────────────────");
         System.out.println("                Withdrawal Request Details                  ");
         System.out.println("────────────────────────────────────────────────────────────");
@@ -489,7 +478,6 @@ public class CareerCenterStaffView {
                 return;
             }
 
-            // apply filters using allOppFilter (status, level, preferred major, company)
             List<InternshipOpportunity> filtered = all.stream()
                     .filter(o -> allOppFilter.getStatus() == null
                             || o.getStatus() == allOppFilter.getStatus())
@@ -502,7 +490,6 @@ public class CareerCenterStaffView {
                                     .contains(allOppFilter.getCompany().toLowerCase()))
                     .collect(Collectors.toList());
 
-            // apply sorting
             Comparator<InternshipOpportunity> cmp;
             if ("company".equalsIgnoreCase(allOppSortKey)) {
                 cmp = Comparator.comparing(InternshipOpportunity::getCompanyName,
@@ -523,7 +510,6 @@ public class CareerCenterStaffView {
             }
             filtered.sort(cmp);
 
-            // show current filter + sort + table
             printAllOppFilterAndSort(allOppFilter, allOppSortKey, allOppSortDescending);
             printAllOpportunitiesTable(filtered);
 
@@ -537,7 +523,6 @@ public class CareerCenterStaffView {
                 ConsoleUI.sectionHeader("Career Center Staff View");
                 return;
             } else if ("1".equals(choice)) {
-                // edit filter menu
                 while (true) {
                     System.out.println();
                     System.out.println("Filter opportunities by:");
@@ -552,7 +537,6 @@ public class CareerCenterStaffView {
                         break;
                     }
 
-                    // ---- internship level ----
                     if ("1".equals(f)) {
                         System.out.println();
                         System.out.println("Select Internship Level:");
@@ -585,7 +569,6 @@ public class CareerCenterStaffView {
                         break;
                     }
 
-                    // ---- opportunity status ----
                     else if ("2".equals(f)) {
                         System.out.println();
                         System.out.println("Select opportunity status:");
@@ -623,7 +606,6 @@ public class CareerCenterStaffView {
                         break;
                     }
 
-                    // ---- preferred major ----
                     else if ("3".equals(f)) {
                         System.out.println();
                         System.out.println("Select Preferred Major:");
@@ -671,7 +653,6 @@ public class CareerCenterStaffView {
                         break;
                     }
 
-                    // ---- company name ----
                     else if ("4".equals(f)) {
                         System.out.println();
                         System.out.print("Enter company keyword (blank to cancel): ");
@@ -688,7 +669,6 @@ public class CareerCenterStaffView {
                 }
 
             } else if ("2".equals(choice)) {
-                // edit sort
                 System.out.println();
                 System.out.println("Sort opportunities by:");
                 System.out.println("(1) Internship title");
@@ -734,7 +714,6 @@ public class CareerCenterStaffView {
                 }
 
             } else if ("0".equals(choice)) {
-                // reset filter & sort
                 allOppFilter.setStatus(null);
                 allOppFilter.setLevel(null);
                 allOppFilter.setPreferredMajor(null);
@@ -751,6 +730,11 @@ public class CareerCenterStaffView {
         }
     }
 
+    /** 
+     * @param filter
+     * @param sortKey
+     * @param sortDescending
+     */
     private void printAllOppFilterAndSort(FilterCriteria filter,
                                         String sortKey,
                                         boolean sortDescending) {
@@ -808,6 +792,9 @@ public class CareerCenterStaffView {
         System.out.println();
     }
 
+    /** 
+     * @param list
+     */
     private void printAllOpportunitiesTable(List<InternshipOpportunity> list) {
         System.out.printf(
                 "%-4s %-15s %-25s %-20s %-20s %-20s %-20s %-12s %-16s %-16s%n",
@@ -843,11 +830,9 @@ public class CareerCenterStaffView {
         System.out.println("\n(Total: " + list.size() + " internship opportunities)\n");
     }
 
-    /** view all withdrawal requests (read-only) */
     private void viewAllWithdrawalRequests() {
         ConsoleUI.sectionHeader("Career Center Staff > View All Withdrawal Requests");
 
-        // get all (pending + approved + rejected, depending on implementation)
         List<WithdrawalRequest> all = applicationService.getAllWithdrawalRequests();
 
         if (all == null || all.isEmpty()) {
@@ -857,7 +842,6 @@ public class CareerCenterStaffView {
             return;
         }
 
-        // table header
         System.out.printf("%-4s %-10s %-15s %-15s %-15s %-20s %-15s %-15s %-20s%n",
                 "S/N", "Request ID", "Application ID", "Student ID", "Opportunity ID", "Internship Title", "Company", "Status", "Requested At");
         System.out.println("----------------------------------------------------------------------------------------------------------------------------------------");
@@ -900,16 +884,14 @@ public class CareerCenterStaffView {
         final Major[] majorFilter = new Major[1];
         final InternshipLevel[] levelFilter = new InternshipLevel[1];
 
-        final String[] sortField = new String[1];      // "id", "title", "company", "level", "major", "status"
+        final String[] sortField = new String[1];    
         final boolean[] sortDescending = new boolean[1];
-        sortDescending[0] = false; // default ascending
+        sortDescending[0] = false; 
 
-        // ───────── filter menu ─────────
         System.out.println("───────────────────────────────────────────────");
         System.out.println("   Internship Opportunity Report Filtering");
         System.out.println("───────────────────────────────────────────────");
 
-        // status filter
         while (true) {
             System.out.println("\nFilter by Opportunity Status:");
             System.out.println("[1] Pending");
@@ -940,7 +922,6 @@ public class CareerCenterStaffView {
             break;
         }
 
-        // major filter
         while (true) {
             System.out.println("\nFilter by Preferred Major:");
             System.out.println("[1] CSC");
@@ -975,7 +956,6 @@ public class CareerCenterStaffView {
             break;
         }
 
-        // level filter
         while (true) {
             System.out.println("\nFilter by Intership Level:");
             System.out.println("[1] Basic");
@@ -1004,7 +984,6 @@ public class CareerCenterStaffView {
             break;
         }
 
-        // ───────── sort menu ─────────
         System.out.println();
         System.out.println("───────────────────────────────────────────────");
         System.out.println("    Internship Opportunity Report Sorting");
@@ -1025,7 +1004,6 @@ public class CareerCenterStaffView {
 
             String s = sc.nextLine().trim().toLowerCase();
 
-            // default sort = internship titles
             if (s.isEmpty()) {
                 sortField[0] = "title";
                 sortDescending[0] = false; 
@@ -1072,7 +1050,6 @@ public class CareerCenterStaffView {
             }
         }
 
-        // ───────── build filtercriteria for report metadata ─────────
         FilterCriteria criteria = new FilterCriteria();
         if (statusFilter[0] != null) {
             criteria.setStatus(statusFilter[0]);
@@ -1084,14 +1061,12 @@ public class CareerCenterStaffView {
             criteria.setLevel(levelFilter[0]);
         }
 
-        // ───────── filtered results ─────────
         List<InternshipOpportunity> result = all.stream()
                 .filter(o -> statusFilter[0] == null || o.getStatus() == statusFilter[0])
                 .filter(o -> majorFilter[0] == null || o.getPreferredMajor() == majorFilter[0])
                 .filter(o -> levelFilter[0] == null || o.getLevel() == levelFilter[0])
                 .collect(Collectors.toList());
 
-        // ───────── apply sorting if requested ─────────
         if (sortField[0] != null) {
             Comparator<InternshipOpportunity> cmp = switch (sortField[0]) {
                 case "id"     -> Comparator.comparing(InternshipOpportunity::getId, String.CASE_INSENSITIVE_ORDER);
@@ -1112,10 +1087,7 @@ public class CareerCenterStaffView {
             }
         }
 
-        // ───────── handle empty after filter/sort ─────────
         if (result.isEmpty()) {
-
-            // current filters
             StringBuilder current = new StringBuilder("Current Filters: ");
             boolean noFilter = true;
 
@@ -1135,8 +1107,6 @@ public class CareerCenterStaffView {
                 current = new StringBuilder("Current Filters: None");
             }
 
-            // current sort
-            // current sort (friendly label)
             StringBuilder sortInfo = new StringBuilder("Current Sorting: ");
             if (sortField[0] == null) {
                 sortInfo.append("None");
@@ -1159,8 +1129,8 @@ public class CareerCenterStaffView {
             }
 
             System.out.println();
-            System.out.println(current);   // active filters string (you already built this)
-            System.out.println(sortInfo);  // new friendly "current sorting"
+            System.out.println(current); 
+            System.out.println(sortInfo); 
             System.out.println("✗ No internship opportunities matched your filters.\n");
 
             System.out.print("Press enter to return... ");
@@ -1169,11 +1139,9 @@ public class CareerCenterStaffView {
             return;
         }
 
-        // ───────── create report entity ─────────
         Report report = new Report(staff, criteria, result);
         System.out.println("\n" + report.getSummary() + "\n");
 
-        // ───────── show current filters & sorting (non-empty) ─────────
         StringBuilder current2 = new StringBuilder("Current Filters: ");
         boolean noFilter2 = true;
 
@@ -1193,7 +1161,6 @@ public class CareerCenterStaffView {
             current2 = new StringBuilder("Current Filters: None");
         }
 
-        // friendly sorting label
         StringBuilder sortInfo2 = new StringBuilder("Current Sorting: ");
         if (sortField[0] == null) {
             sortInfo2.append("None");
@@ -1218,7 +1185,6 @@ public class CareerCenterStaffView {
         System.out.println(current2);
         System.out.println(sortInfo2 + "\n");
 
-        // ───────── print table ─────────
         String header = String.format(
             "%-4s %-15s %-25s %-20s %-20s %-20s %-15s %-20s %-15s %-15s",
             "S/N", "Opportunity ID", "Internship Title", "Company", "Internship level",
@@ -1249,7 +1215,6 @@ public class CareerCenterStaffView {
 
         System.out.println("\n(Total: " + result.size() + " internship opportunities)\n");
 
-        // ───────── save as csv? ─────────
         while (true) {
             System.out.print("Do you want to save this report as a .csv file? (y/n): ");
             String save = sc.nextLine().trim().toLowerCase();
@@ -1267,18 +1232,19 @@ public class CareerCenterStaffView {
         ConsoleUI.sectionHeader("Career Center Staff View");
     }
 
+    /** 
+     * @param report
+     * @param path
+     */
     public void saveReportAsCSV(Report report, String path) {
 
         try (PrintWriter writer = new PrintWriter(new FileWriter(path))) {
 
-            // write summary only
             writer.println("summary");
             writer.printf("\"%s\"%n%n", report.getSummary().toLowerCase());
 
-            // write headers
             writer.println("id,title,company,level,major,status,confirmed_slots,total_slots,open_date,close_date");
 
-            // write each opportunity
             for (InternshipOpportunity o : report.getOpportunities()) {
                 writer.printf(
                     "\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%d,%d,%s,%s%n",

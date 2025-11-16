@@ -7,14 +7,19 @@ import entity.*;
 
 public class AuthControl {
 
-    private final List<User> userList; // list of all registered users
-    private User currentUser;          // user currently logged in
+    private final List<User> userList; 
+    private User currentUser;          
 
     public AuthControl(List<User> userList) {
         this.userList = Objects.requireNonNull(userList, "userList must not be null");
     }
 
-    /** attempt login by canonical id + password, restricted by role */
+    /** 
+     * @param id
+     * @param pwd
+     * @param role
+     * @return User
+     */
     public User login(String id, String pwd, int role) {
         String target = User.canonical(id);
 
@@ -24,7 +29,6 @@ public class AuthControl {
             boolean sameId = User.canonical(u.getId()).equals(target);
             if (sameId && u.verifyPassword(pwd)) {
 
-                // extra status check for company representatives
                 if (u instanceof CompanyRepresentative rep) {
                     switch (rep.getStatus()) {
                         case PENDING -> {
@@ -36,7 +40,6 @@ public class AuthControl {
                             return null;
                         }
                         default -> {
-                            // APPROVED → allow login
                         }
                     }
                 }
@@ -48,6 +51,11 @@ public class AuthControl {
         return null;
     }
 
+    /** 
+     * @param u
+     * @param role
+     * @return boolean
+     */
     private boolean matchesRole(User u, int role) {
         return switch (role) {
             case 1 -> u instanceof Student;
@@ -57,22 +65,34 @@ public class AuthControl {
         };
     }
 
+    /** 
+     * @param user
+     */
     public void logout(User user) {
         if (currentUser != null && currentUser.equals(user)) currentUser = null;
     }
 
+    /** 
+     * @return User
+     */
     public User getCurrentUser() {
         return currentUser;
     }
 
-    /** add user only if no existing user (of any type) has the same canonical id */
+    /** 
+     * @param u
+     * @return boolean
+     */
     public boolean addUser(User u) {
         if (userIdTaken(u.getId())) return false;
         userList.add(u);
         return true;
     }
 
-    /** true if any user (any type) already uses this id (case/space insensitive) */
+    /** 
+     * @param id
+     * @return boolean
+     */
     public boolean userIdTaken(String id) {
         String target = User.canonical(id);
         for (User u : userList) {
@@ -81,7 +101,10 @@ public class AuthControl {
         return false;
     }
 
-    /** find a user by id (case/space insensitive), or null if not found */
+    /** 
+     * @param id
+     * @return User
+     */
     public User findById(String id) {
         String target = User.canonical(id);
         for (User u : userList) {

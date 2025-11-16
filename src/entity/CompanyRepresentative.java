@@ -4,12 +4,11 @@ import enumerations.AccountStatus;
 
 import java.util.Objects;
 
-/** Company representative; must be approved before fully active. */
 public class CompanyRepresentative extends User {
     private final String companyName;
     private final String department;
     private final String position;
-    private AccountStatus status;         // PENDING, APPROVED, REJECTED
+    private AccountStatus status;        
     private int activeListingsCount;
 
     public CompanyRepresentative(String id, String name, String companyName, String department, String position, AccountStatus status) {
@@ -20,27 +19,41 @@ public class CompanyRepresentative extends User {
         this.status = Objects.requireNonNull(status);
     }
 
+    /** 
+     * @return String
+     */
     public String getCompanyName() { 
         return companyName; 
     
     }
+    /** 
+     * @return String
+     */
     public String getDepartment() { 
         return department; 
     }
 
+    /** 
+     * @return String
+     */
     public String getPosition() { 
         return position; 
     }
 
+    /** 
+     * @return AccountStatus
+     */
     public AccountStatus getStatus() { 
         return status; 
     }
 
+    /** 
+     * @param status
+     */
     public void setStatus(AccountStatus status) { 
         this.status = Objects.requireNonNull(status); 
     }
 
-    // update it when new opportunity is added or deleted
     public void incrementListings() { 
         activeListingsCount++; 
     }

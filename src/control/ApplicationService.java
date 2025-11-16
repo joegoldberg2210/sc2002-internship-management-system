@@ -74,6 +74,10 @@ public class ApplicationService {
         loader.saveWithdrawalRequests(withdrawalRequests);
     }
 
+    /** 
+     * @param student
+     * @return List<Application>
+     */
     public List<Application> getSuccessfulOffersForStudent(Student student) {
         return applications.stream()
                 .filter(a -> a.getStudent().equals(student))
@@ -169,6 +173,10 @@ public class ApplicationService {
         save();
     }
 
+    /** 
+     * @param student
+     * @param acceptedApp
+     */
     private void withdrawOtherOffers(Student student, Application acceptedApp) {
         for (Application a : applications) {
             if (a.getStudent().equals(student) && !a.equals(acceptedApp)) {

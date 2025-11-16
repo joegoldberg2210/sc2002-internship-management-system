@@ -11,6 +11,9 @@ public final class DomainRules {
     public static EligibilityPolicy eligibility() { return eligibility; }
 
     
+    /** 
+     * @param p
+     */
     public static void setEligibility(EligibilityPolicy p) {
         if (p == null) throw new IllegalArgumentException("policy cannot be null");
         eligibility = p;

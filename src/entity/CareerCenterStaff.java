@@ -1,6 +1,5 @@
 package entity;
 
-/** Career center staff with department and preferences. */
 public class CareerCenterStaff extends User {
     private final String staffDepartment;
 
@@ -9,5 +8,10 @@ public class CareerCenterStaff extends User {
         this.staffDepartment = staffDepartment;
     }
 
-    public String getStaffDepartment()            { return staffDepartment; }
+    /** 
+     * @return String
+     */
+    public String getStaffDepartment() { 
+        return staffDepartment; 
+    }
 }
