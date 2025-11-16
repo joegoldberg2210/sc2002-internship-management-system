@@ -18,7 +18,7 @@ public class DataLoader {
     private static final String WITHDRAWALS_FILE = SERIALIZED_FOLDER + "/withdrawals.ser";
 
     /** 
-     * @return List<User>
+     * @return list&lt;user&gt;
      */
     public List<User> loadUsers() {
         List<User> saved = loadSavedUsers();
@@ -47,7 +47,7 @@ public class DataLoader {
     }
 
     /** 
-     * @return List<WithdrawalRequest>
+     * @return list&lt;withdrawalrequest&gt;
      */
     public List<WithdrawalRequest> loadWithdrawalRequests() {
         List<WithdrawalRequest> saved = loadSavedWithdrawals();
@@ -83,7 +83,7 @@ public class DataLoader {
 
     /** 
      * @param folder
-     * @return List<User>
+     * @return list&lt;user&gt;
      */
     private List<User> loadUsersFromCSV(String folder) {
         List<User> users = new ArrayList<>();
@@ -196,7 +196,7 @@ public class DataLoader {
     }
 
     /** 
-     * @return List<InternshipOpportunity>
+     *  * @return list&lt;internshipopportunity&gt;
      */
     public List<InternshipOpportunity> loadOpportunities() {
         List<InternshipOpportunity> saved = loadSavedOpportunities();
@@ -222,7 +222,7 @@ public class DataLoader {
     }
 
     /** 
-     * @return List<Application>
+     * @return list&lt;application&gt;
      */
     public List<Application> loadApplications() {
         List<Application> saved = loadSavedApplications();
@@ -266,7 +266,7 @@ public class DataLoader {
     }
 
     /** 
-     * @return List<User>
+     * @return list&lt;user&gt;
      */
     @SuppressWarnings("unchecked")
     private List<User> loadSavedUsers() {
@@ -284,7 +284,7 @@ public class DataLoader {
     }
 
     /** 
-     * @return List<InternshipOpportunity>
+     *  * @return list&lt;internshipopportunity&gt;
      */
     @SuppressWarnings("unchecked")
     private List<InternshipOpportunity> loadSavedOpportunities() {
@@ -302,7 +302,7 @@ public class DataLoader {
     }
 
     /** 
-     * @return List<Application>
+     * @return list&lt;application&gt;
      */
     @SuppressWarnings("unchecked")
     private List<Application> loadSavedApplications() {
@@ -320,7 +320,7 @@ public class DataLoader {
     }
 
     /** 
-     * @return List<WithdrawalRequest>
+     * @return list&lt;withdrawalrequest&gt;
      */
     @SuppressWarnings("unchecked")
     private List<WithdrawalRequest> loadSavedWithdrawals() {

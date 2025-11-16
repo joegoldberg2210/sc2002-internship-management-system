@@ -27,7 +27,7 @@ public class OpportunityService {
     /** 
      * @param s
      * @param fc
-     * @return List<InternshipOpportunity>
+     *  * @return list&lt;internshipopportunity&gt;
      */
     public List<InternshipOpportunity> findBy(Student s, FilterCriteria fc) {
         return getAllOpportunities().stream()
@@ -141,7 +141,7 @@ public class OpportunityService {
 
     /** 
      * @param companyName
-     * @return List<InternshipOpportunity>
+     *  * @return list&lt;internshipopportunity&gt;
      */
     public List<InternshipOpportunity> getByCompany(String companyName) {
         return opportunities.stream()
@@ -151,7 +151,7 @@ public class OpportunityService {
 
     /** 
      * @param major
-     * @return List<InternshipOpportunity>
+     *  * @return list&lt;internshipopportunity&gt;
      */
     public List<InternshipOpportunity> getByMajor(Major major) {
         return opportunities.stream()
@@ -162,7 +162,7 @@ public class OpportunityService {
     public List<InternshipOpportunity> getAllOpportunities() { return opportunities; }
 
     /** 
-     * @return List<InternshipOpportunity>
+     *  * @return list&lt;internshipopportunity&gt;
      */
     public List<InternshipOpportunity> getPending() {
         return opportunities.stream()
@@ -171,7 +171,7 @@ public class OpportunityService {
     }
 
     /** 
-     * @return List<InternshipOpportunity>
+     *  * @return list&lt;internshipopportunity&gt;
      */
     public List<InternshipOpportunity> getApproved() {
         return opportunities.stream()
@@ -217,7 +217,7 @@ public class OpportunityService {
     /** 
      * @param all
      * @param c
-     * @return List<InternshipOpportunity>
+     *  * @return list&lt;internshipopportunity&gt;
      */
     public List<InternshipOpportunity> filter(List<InternshipOpportunity> all, FilterCriteria c) {
         return all.stream()

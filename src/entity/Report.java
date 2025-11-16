@@ -32,9 +32,10 @@ public class Report {
                 staffName, generatedAt, opportunities.size());
     }
 
-    /** 
-     * @param toString(
-     * @return LocalDateTime
+    /**
+     * returns the timestamp when this withdrawal request was reviewed.
+     *
+     * @return the review date and time, or null if not yet reviewed
      */
     public LocalDateTime getGeneratedAt() { return generatedAt; }
     public FilterCriteria getCriteria() { return criteria; }

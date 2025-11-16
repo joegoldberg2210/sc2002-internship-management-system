@@ -85,7 +85,7 @@ public class AccountApprovalService {
     }
 
     /** 
-     * @return List<CompanyRepresentative>
+     * @return list&lt;companyrepresentative&gt;
      */
     public List<CompanyRepresentative> getPendingCompanyReps() {
         List<CompanyRepresentative> pending = new ArrayList<>();
@@ -98,7 +98,7 @@ public class AccountApprovalService {
     }
 
     /** 
-     * @return List<CompanyRepresentative>
+     * @return list&lt;companyrepresentative&gt;
      */
     public List<CompanyRepresentative> getAllCompanyReps() {
         List<CompanyRepresentative> all = new ArrayList<>();

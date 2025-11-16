@@ -47,22 +47,68 @@ public class WithdrawalRequest implements Serializable {
     }
 
     /** 
-     * @param toString(
      * @return String
      */
-    public String getId() { return id; }
-    public Application getApplication() { return application; }
-    public Student getRequestedBy() { return requestedBy; }
-    public LocalDate getRequestedAt() { return requestedAt; }
-    public WithdrawalStatus getStatus() { return status; }
-    public CareerCenterStaff getReviewedBy() { return reviewedBy; }
-    public LocalDate getReviewedAt() { return reviewedAt; }
+    public String getId() { 
+        return id; 
+    }
 
     /** 
-     * @param toString(
+     * @return Application
      */
-    public void setApplication(Application application) { this.application = application; }
-    public void setRequestedBy(Student requestedBy) { this.requestedBy = requestedBy; }
+    public Application getApplication() { 
+        return application; 
+    }
+
+    /** 
+     * @return Student
+     */
+    public Student getRequestedBy() { 
+        return requestedBy; 
+    }
+
+    /** 
+     * @return LocalDate
+     */
+    public LocalDate getRequestedAt() { 
+        return requestedAt; 
+    }
+
+    /** 
+     * @return WithdrawalStatus
+     */
+    public WithdrawalStatus getStatus() { 
+        return status; 
+    }
+    
+    /** 
+     * @return CareerCenterStaff
+     */
+    public CareerCenterStaff getReviewedBy() { 
+        return reviewedBy; 
+    }
+
+    /** 
+     * @return LocalDate
+     */
+    public LocalDate getReviewedAt() { 
+        return reviewedAt; 
+    }
+
+    /**
+     *
+     * @param application
+     */
+    public void setApplication(Application application) { 
+        this.application = application; 
+    }
+
+    /** 
+     * @param requestedBy
+     */
+    public void setRequestedBy(Student requestedBy) { 
+        this.requestedBy = requestedBy; 
+    }
 
     /** 
      * @return String
