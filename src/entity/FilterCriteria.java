@@ -3,7 +3,6 @@ package entity;
 import java.io.Serializable;
 import java.util.Date;
 
-import enumerations.Major;
 import enumerations.InternshipLevel;
 import enumerations.OpportunityStatus;
 

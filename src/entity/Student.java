@@ -14,7 +14,6 @@ public class Student extends User {
     private Major major;                  // CSC, EEE, ...
     private final List<Application> applications = new ArrayList<>();
     private Application acceptedApplication;     // 0..1
-    private UserPreferences preferences;         // 0..1
 
     public Student(String id, String name, int yearOfStudy, Major major) {
         super(id, name);
@@ -27,9 +26,6 @@ public class Student extends User {
     public List<Application> getApplications() { return applications; }
     public Application getAcceptedApplication() { return acceptedApplication; }
     void _setAcceptedApplication(Application app) { this.acceptedApplication = app; }
-
-    public UserPreferences getPreferences() { return preferences; }
-    public void setPreferences(UserPreferences preferences) { this.preferences = preferences; }
 
     /** at most 3 concurrent (PENDING) applications. */
     public boolean hasCapacityForNewApplication() {

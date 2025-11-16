@@ -13,7 +13,6 @@ import entity.InternshipOpportunity;
 import entity.Student;
 import enumerations.Major;
 import enumerations.OpportunityStatus;
-import ui.ConsoleUI;
 
 public class OpportunityService {
 
