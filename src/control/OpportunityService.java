@@ -30,7 +30,7 @@ public class OpportunityService {
                 .filter(o -> o.isOpenFor(s))
                 .filter(o -> fc.getStatus() == null || o.getStatus() == fc.getStatus())
                 .filter(o -> fc.getPreferredMajor() == null
-                        || o.getPreferredMajor().name().equalsIgnoreCase(fc.getPreferredMajor()))
+                        || o.getPreferredMajor() == fc.getPreferredMajor())
                 .filter(o -> fc.getLevel() == null || o.getLevel() == fc.getLevel())
                 .filter(o -> {
                     if (fc.getClosingDateBefore() == null) return true;
@@ -187,7 +187,7 @@ public class OpportunityService {
         return all.stream()
             .filter(o -> c.getStatus() == null || o.getStatus() == c.getStatus())
             .filter(o -> c.getPreferredMajor() == null ||
-                        o.getPreferredMajor().name().equalsIgnoreCase(c.getPreferredMajor()))
+                        o.getPreferredMajor() == c.getPreferredMajor())
             .filter(o -> c.getLevel() == null || o.getLevel() == c.getLevel())
             .filter(o -> c.getCompany() == null ||
                         o.getCompanyName().toLowerCase().contains(c.getCompany().toLowerCase()))

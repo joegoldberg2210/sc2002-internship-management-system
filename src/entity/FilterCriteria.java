@@ -5,11 +5,12 @@ import java.util.Date;
 
 import enumerations.InternshipLevel;
 import enumerations.OpportunityStatus;
+import enumerations.Major;
 
 public class FilterCriteria implements Serializable {
 
     private OpportunityStatus status;     // pending / approved / filled / rejected
-    private String preferredMajor;        // stored as string name
+    private Major preferredMajor;         // stored as enum
     private InternshipLevel level;        // basic / intermediate / advanced
     private String company;               // optional for search
     private Date closingDateBefore;       // optional
@@ -19,18 +20,32 @@ public class FilterCriteria implements Serializable {
     }
 
     // === getters ===
-    public OpportunityStatus getStatus() { return status; }
-    public String getPreferredMajor() { return preferredMajor; }
-    public InternshipLevel getLevel() { return level; }
-    public String getCompany() { return company; }
-    public Date getClosingDateBefore() { return closingDateBefore; }
+    public OpportunityStatus getStatus() { 
+        return status; 
+    }
+
+    public Major getPreferredMajor() { 
+        return preferredMajor; 
+    }
+
+    public InternshipLevel getLevel() { 
+        return level; 
+    }
+
+    public String getCompany() { 
+        return company; 
+    }
+
+    public Date getClosingDateBefore() { 
+        return closingDateBefore; 
+    }
 
     // === setters ===
     public void setStatus(OpportunityStatus status) {
         this.status = status;
     }
 
-    public void setPreferredMajor(String preferredMajor) {
+    public void setPreferredMajor(Major preferredMajor) {
         this.preferredMajor = preferredMajor;
     }
 

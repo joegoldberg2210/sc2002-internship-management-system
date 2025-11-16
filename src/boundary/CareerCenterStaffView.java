@@ -22,6 +22,7 @@ import entity.WithdrawalRequest;
 import enumerations.InternshipLevel;
 import enumerations.Major;
 import enumerations.OpportunityStatus;
+import enumerations.Major;
 import ui.ConsoleUI;
 
 public class CareerCenterStaffView {
@@ -495,8 +496,7 @@ public class CareerCenterStaffView {
                     .filter(o -> allOppFilter.getLevel() == null
                             || o.getLevel() == allOppFilter.getLevel())
                     .filter(o -> allOppFilter.getPreferredMajor() == null
-                            || o.getPreferredMajor().name()
-                                    .equalsIgnoreCase(allOppFilter.getPreferredMajor()))
+                            || o.getPreferredMajor() == allOppFilter.getPreferredMajor())
                     .filter(o -> allOppFilter.getCompany() == null
                             || o.getCompanyName().toLowerCase()
                                     .contains(allOppFilter.getCompany().toLowerCase()))
@@ -638,27 +638,27 @@ public class CareerCenterStaffView {
 
                         switch (mj) {
                             case "1":
-                                allOppFilter.setPreferredMajor("CSC");
+                                allOppFilter.setPreferredMajor(Major.CSC);
                                 System.out.println("✓ Preferred major filter set to CSC.\n");
                                 break;
                             case "2":
-                                allOppFilter.setPreferredMajor("DSAI");
+                                allOppFilter.setPreferredMajor(Major.DSAI);
                                 System.out.println("✓ Preferred major filter set to DSAI.\n");
                                 break;
                             case "3":
-                                allOppFilter.setPreferredMajor("CEG");
+                                allOppFilter.setPreferredMajor(Major.CEG);
                                 System.out.println("✓ Preferred major filter set to CEG.\n");
                                 break;
                             case "4":
-                                allOppFilter.setPreferredMajor("IEM");
+                                allOppFilter.setPreferredMajor(Major.IEM);
                                 System.out.println("✓ Preferred major filter set to IEM.\n");
                                 break;
                             case "5":
-                                allOppFilter.setPreferredMajor("BCG");
+                                allOppFilter.setPreferredMajor(Major.BCG);
                                 System.out.println("✓ Preferred major filter set to BCG.\n");
                                 break;
                             case "6":
-                                allOppFilter.setPreferredMajor("BCE");
+                                allOppFilter.setPreferredMajor(Major.BCE);
                                 System.out.println("✓ Preferred major filter set to BCE.\n");
                                 break;
                             case "":
@@ -769,9 +769,9 @@ public class CareerCenterStaffView {
             .append("  ");
             any = true;
         }
-        if (filter.getPreferredMajor() != null && !filter.getPreferredMajor().isEmpty()) {
+        if (filter.getPreferredMajor() != null) {
             fb.append("Preferred Major = ")
-            .append(filter.getPreferredMajor().toLowerCase())
+            .append(filter.getPreferredMajor().name().toLowerCase())
             .append("  ");
             any = true;
         }
@@ -1078,7 +1078,7 @@ public class CareerCenterStaffView {
             criteria.setStatus(statusFilter[0]);
         }
         if (majorFilter[0] != null) {
-            criteria.setPreferredMajor(majorFilter[0].name());
+            criteria.setPreferredMajor(majorFilter[0]);
         }
         if (levelFilter[0] != null) {
             criteria.setLevel(levelFilter[0]);

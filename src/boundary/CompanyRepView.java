@@ -726,8 +726,7 @@ public class CompanyRepView {
                     .filter(o -> myOppFilter.getStatus() == null ||
                             o.getStatus() == myOppFilter.getStatus())
                     .filter(o -> myOppFilter.getPreferredMajor() == null ||
-                            o.getPreferredMajor().name()
-                                    .equalsIgnoreCase(myOppFilter.getPreferredMajor()))
+                            o.getPreferredMajor() == myOppFilter.getPreferredMajor())
                     .collect(Collectors.toList());
 
             // apply sorting
@@ -838,17 +837,17 @@ public class CompanyRepView {
                         String mj = sc.nextLine().trim();
 
                         switch (mj) {
-                            case "1" -> { myOppFilter.setPreferredMajor("CSC");
+                            case "1" -> { myOppFilter.setPreferredMajor(Major.CSC);
                                 System.out.println("✓ Preferred major set to CSC.\n"); }
-                            case "2" -> { myOppFilter.setPreferredMajor("DSAI");
+                            case "2" -> { myOppFilter.setPreferredMajor(Major.DSAI);
                                 System.out.println("✓ Preferred major set to DSAI.\n"); }
-                            case "3" -> { myOppFilter.setPreferredMajor("CEG");
+                            case "3" -> { myOppFilter.setPreferredMajor(Major.CEG);
                                 System.out.println("✓ Preferred major set to CEG.\n"); }
-                            case "4" -> { myOppFilter.setPreferredMajor("IEM");
+                            case "4" -> { myOppFilter.setPreferredMajor(Major.IEM);
                                 System.out.println("✓ Preferred major set to IEM.\n"); }
-                            case "5" -> { myOppFilter.setPreferredMajor("BCG");
+                            case "5" -> { myOppFilter.setPreferredMajor(Major.BCG);
                                 System.out.println("✓ Preferred major set to BCG.\n"); }
-                            case "6" -> { myOppFilter.setPreferredMajor("BCE");
+                            case "6" -> { myOppFilter.setPreferredMajor(Major.BCE);
                                 System.out.println("✓ Preferred major set to BCE.\n"); }
                             case "" -> System.out.println("Preferred major unchanged.\n"); 
                             default -> System.out.println("✗ Invalid option.\n");
