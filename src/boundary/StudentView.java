@@ -16,6 +16,7 @@ import entity.User;
 import entity.WithdrawalRequest;
 import enumerations.ApplicationStatus;
 import enumerations.InternshipLevel;
+import enumerations.OpportunityStatus;
 import ui.ConsoleUI;
 
 public class StudentView {
@@ -95,7 +96,7 @@ public class StudentView {
         System.out.println("(2) View Available Internships");
         System.out.println("(3) Apply For Internships");
         System.out.println("(4) View My Submitted Applications");
-        System.out.println("(5) View Pending Internship Offers");
+        System.out.println("(5) Accept/Reject Internship Offers");
         System.out.println("(6) View Accepted Internship Placement");
         System.out.println("(7) Withdraw Internship Application");
         System.out.println("(8) View My Withdrawal Requests");
@@ -481,12 +482,21 @@ public class StudentView {
     }
 
     private void viewPendingInternshipOffers() {
-        ConsoleUI.sectionHeader("Student View > View Pending Internship Offers");
+        ConsoleUI.sectionHeader("Student View > Accept/Reject Internship Offers");
 
         List<Application> offers = applicationService.getSuccessfulOffersForStudent(student);
 
         if (offers.isEmpty()) {
             System.out.println("✗ You currently have no pending internship offers.\n");
+            System.out.print("Press enter to return... ");
+            sc.nextLine();
+            ConsoleUI.sectionHeader("Student View");
+            return;
+        }
+
+        boolean alreadyAccepted = offers.stream().anyMatch(Application::isAccepted);
+        if (alreadyAccepted) {
+            System.out.println("✓ You have already accepted an internship offer. You cannot accept or reject other internship offers.\n");
             System.out.print("Press enter to return... ");
             sc.nextLine();
             ConsoleUI.sectionHeader("Student View");
@@ -511,22 +521,6 @@ public class StudentView {
                     a.getStatus());
         }
         System.out.println();
-
-        boolean alreadyAccepted = offers.stream().anyMatch(Application::isAccepted);
-        if (alreadyAccepted) {
-            System.out.println("✓ You have already accepted an internship offer. You cannot accept or reject other internship offers.\n");
-            System.out.print("Press enter to return... ");
-            sc.nextLine();
-            ConsoleUI.sectionHeader("Student View");
-            return;
-        }
-
-        System.out.print("\nDo you want to accept/reject any internship opportunities? (y/n): ");
-        String response = sc.nextLine().trim().toUpperCase();
-        if (!response.equals("Y")) {
-            ConsoleUI.sectionHeader("Student View");
-            return;
-        }
 
         System.out.print("\nEnter Application ID: ");
         String appId = sc.nextLine().trim();
@@ -737,7 +731,8 @@ public class StudentView {
         ConsoleUI.sectionHeader("Student View > Apply For Internships");
 
         List<InternshipOpportunity> available = opportunityService.getAllOpportunities().stream()
-                .filter(o -> o.isOpenFor(student))
+                .filter(o -> o.getStatus() != OpportunityStatus.REJECTED)
+                .filter(o -> o.isEligibleFor(student))
                 .collect(Collectors.toList());
 
         if (available.isEmpty()) {
@@ -753,7 +748,7 @@ public class StudentView {
                 "%-4s %-15s %-25s %-20s %-15s %-15s %-15s %-12s %-12s%n",
                 "S/N", "Opportunity ID", "Internship Title", "Internship Level",
                 "Company", "Preferred Major", "Number of Slots", "Open Date", "Close Date");
-        System.out.println("------------------------------------------------------------------------------------------------------------------------------------------------");
+        System.out.println("----------------------------------------------------------------------------------------------------------------------------------------------------------------------");
 
         int i = 1;
         for (InternshipOpportunity o : available) {
@@ -796,6 +791,15 @@ public class StudentView {
             System.out.println("✗ Invalid opportunity ID. Please try again.\n");
         }
 
+        if (!selected.isOpenFor(student)) {
+            System.out.println("✗ This internship is not currently open for applications.");
+            System.out.println();
+            System.out.print("Press enter to return... ");
+            sc.nextLine();
+            ConsoleUI.sectionHeader("Student View");
+            return;
+        }
+
         List<Application> myApps = applicationService.getApplicationsForStudent(student);
         boolean hasPendingForThisOpp = false;
 
@@ -809,6 +813,7 @@ public class StudentView {
 
         if (hasPendingForThisOpp) {
             System.out.println("✗ You already have a pending application for this internship and cannot apply again.\n");
+            System.out.println();
             System.out.print("Press enter to return... ");
             sc.nextLine();
             ConsoleUI.sectionHeader("Student View");
@@ -838,13 +843,14 @@ public class StudentView {
         }
 
         if (proceed) {
+            // 5) final guard: block if there is any active app (pending/successful) for this opportunity
             boolean hasActive = applicationService.hasActiveApplication(student, selected);
-    
+
             if (hasActive) {
                 System.out.println("✗ You already have a pending or successful application for this internship and cannot apply again.\n");
             } else {
                 Application created = applicationService.applyForOpportunity(student, selected);
-            
+
                 if (created != null) {
                     System.out.println("✓ Application submitted successfully - " + created.getId());
                 } else {
