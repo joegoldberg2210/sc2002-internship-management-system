@@ -767,7 +767,7 @@ public class CareerCenterStaffView {
         }
 
         if (!any) {
-            fb = new StringBuilder("Current filters: none");
+            fb = new StringBuilder("Current Filters: None");
         }
 
         String sortLabel;

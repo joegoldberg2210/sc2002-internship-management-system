@@ -493,19 +493,10 @@ public class StudentView {
             return;
         }
 
-        boolean alreadyAccepted = offers.stream().anyMatch(Application::isAccepted);
-        if (alreadyAccepted) {
-            System.out.println("✓ You have already accepted an internship offer. You cannot accept or reject other internship offers.\n");
-            System.out.print("Press enter to return... ");
-            sc.nextLine();
-            ConsoleUI.sectionHeader("Student View");
-            return;
-        }
-
         System.out.printf("%-4s %-15s %-15s %-25s %-20s %-20s %-20s %-20s%n",
                 "S/N", "Application ID", "Opportunity ID", "Internship Title",
                 "Internship Level", "Company", "Preferred Major", "Application Status");
-        System.out.println("---------------------------------------------------------------------------------------------------");
+        System.out.println("-------------------------------------------------------------------------------------------------------------------------------------------------");
 
         int i = 1;
         for (Application a : offers) {
@@ -518,6 +509,16 @@ public class StudentView {
                     a.getOpportunity().getCompanyName(),
                     a.getOpportunity().getPreferredMajor(),
                     a.getStatus());
+        }
+        System.out.println();
+
+        boolean alreadyAccepted = offers.stream().anyMatch(Application::isAccepted);
+        if (alreadyAccepted) {
+            System.out.println("✓ You have already accepted an internship offer. You cannot accept or reject other internship offers.\n");
+            System.out.print("Press enter to return... ");
+            sc.nextLine();
+            ConsoleUI.sectionHeader("Student View");
+            return;
         }
 
         System.out.print("\nDo you want to accept/reject any internship opportunities? (y/n): ");
@@ -795,8 +796,19 @@ public class StudentView {
             System.out.println("✗ Invalid opportunity ID. Please try again.\n");
         }
 
-        if (applicationService.hasAnyApplicationForOpportunity(student, selected)) {
-            System.out.println("✗ You have already applied for this internship before and cannot apply again.\n");
+        List<Application> myApps = applicationService.getApplicationsForStudent(student);
+        boolean hasPendingForThisOpp = false;
+
+        for (Application a : myApps) {
+            if (a.getOpportunity().getId().equalsIgnoreCase(selected.getId())
+                    && a.getStatus() == ApplicationStatus.PENDING) {
+                hasPendingForThisOpp = true;
+                break;
+            }
+        }
+
+        if (hasPendingForThisOpp) {
+            System.out.println("✗ You already have a pending application for this internship and cannot apply again.\n");
             System.out.print("Press enter to return... ");
             sc.nextLine();
             ConsoleUI.sectionHeader("Student View");
@@ -826,12 +838,18 @@ public class StudentView {
         }
 
         if (proceed) {
-            Application created = applicationService.applyForOpportunity(student, selected);
-
-            if (created != null) {
-                System.out.println("✓ Application submitted successfully - " + created.getId());
+            boolean hasActive = applicationService.hasActiveApplication(student, selected);
+    
+            if (hasActive) {
+                System.out.println("✗ You already have a pending or successful application for this internship and cannot apply again.\n");
             } else {
-                System.out.println("✗ Unable to submit application.");
+                Application created = applicationService.applyForOpportunity(student, selected);
+            
+                if (created != null) {
+                    System.out.println("✓ Application submitted successfully - " + created.getId());
+                } else {
+                    System.out.println("✗ Unable to submit application. Please try again later.");
+                }
             }
         }
 

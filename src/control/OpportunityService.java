@@ -31,8 +31,7 @@ public class OpportunityService {
      */
     public List<InternshipOpportunity> findBy(Student s, FilterCriteria fc) {
         return getAllOpportunities().stream()
-                .filter(o -> o.isOpenFor(s))
-                .filter(o -> fc.getStatus() == null || o.getStatus() == fc.getStatus())
+                .filter(o -> o.getStatus() != OpportunityStatus.REJECTED)
                 .filter(o -> fc.getPreferredMajor() == null
                         || o.getPreferredMajor() == fc.getPreferredMajor())
                 .filter(o -> fc.getLevel() == null || o.getLevel() == fc.getLevel())

@@ -70,12 +70,18 @@ public class InternshipOpportunity implements Serializable {
     }
 
     public boolean isEditable() {
-        return status == OpportunityStatus.PENDING || status == OpportunityStatus.REJECTED;
+        return status == OpportunityStatus.PENDING;
     }
 
     public void incrementConfirmedSlots() {
         if (confirmedSlots < slots)
             confirmedSlots++;
+    }
+
+    public void decrementConfirmedSlots() {
+        if (confirmedSlots > 0) {
+            confirmedSlots--;
+        }
     }
 
     public void resetConfirmedSlots() {
