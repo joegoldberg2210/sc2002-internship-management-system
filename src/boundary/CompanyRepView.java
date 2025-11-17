@@ -205,7 +205,7 @@ public class CompanyRepView {
 
         System.out.printf(
             "%-4s %-15s %-15s %-15s %-20s %-20s %-20s %-20s %-20s %-12s%n",
-            "S/N", "Application ID", "Student ID", "Opportunity ID", "Internship Title", "Internship Level", "Company", "Preferred Major", "Available Slots", "Applied At"
+            "S/N", "Application ID", "Student ID", "Opportunity ID", "Internship Title", "Internship Level", "Company", "Preferred Major", "Number of Slots", "Applied At"
         );
         System.out.println("------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
 
@@ -621,7 +621,7 @@ public class CompanyRepView {
         System.out.printf(
             "%-4s %-15s %-25s %-20s %-20s %-20s %-15s %-15s %-15s %-10s %-15s%n",
             "S/N", "Opportunity ID", "Internship Title", "Level", "Company",
-            "Preferred Major", "Available Slots", "Open Date", "Close Date", "Status", "Visibility"
+            "Preferred Major", "Number of Slots", "Open Date", "Close Date", "Status", "Visibility"
         );
         System.out.println("------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
 
@@ -979,20 +979,19 @@ public class CompanyRepView {
         }
 
         System.out.printf(
-            "%-4s %-15s %-15s %-15s %-20s %-20s %-20s %-20s %-15s %-12s%n",
+            "%-4s %-15s %-15s %-15s %-20s %-20s %-20s %-20 %-12s%n",
             "S/N", "Application ID", "Student ID", "Opportunity ID",
             "Internship Title", "Internship Level", "Company",
-            "Status", "Available Slots", "Applied At"
+            "Status", "Applied At"
         );
         System.out.println("--------------------------------------------------------------------------------------------------------------------------------------------------------------------");
 
         int i = 1;
         for (Application a : myApps) {
             InternshipOpportunity o = a.getOpportunity();
-            String slotsStr = String.format("%d/%d", o.getConfirmedSlots(), o.getSlots());
 
             System.out.printf(
-                "%-4d %-15s %-15s %-15s %-20s %-20s %-20s %-20s %-15s %-12s%n",
+                "%-4d %-15s %-15s %-15s %-20s %-20s %-20s %-20s %-12s%n",
                 i++,
                 a.getId(),
                 a.getStudent().getId(),
@@ -1001,7 +1000,6 @@ public class CompanyRepView {
                 o.getLevel(),
                 o.getCompanyName(),
                 a.getStatus(),
-                slotsStr,
                 a.getAppliedAt()
             );
         }

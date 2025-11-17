@@ -122,20 +122,11 @@ public class ApplicationService {
         }
 
         if (approve) {
-            if (opp.getStatus() != OpportunityStatus.APPROVED) {
-                System.out.println("✗ opportunity is not approved; cannot issue offers.");
-                return;
-            }
             if (opp.getConfirmedSlots() >= opp.getSlots()) {
-                System.out.println("✗ opportunity is already full; cannot issue offers.");
+                System.out.println("✗ No more slots available. Application is automatically rejected");
+                app.markDecision(false);
                 return;
             }
-        }
-
-
-        if (app.getStatus() != ApplicationStatus.PENDING) {
-            System.out.println("✗ this application has already been decided (" + app.getStatus() + ").");
-            return;
         }
 
         app.markDecision(approve);
