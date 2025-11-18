@@ -131,8 +131,8 @@ public class CareerCenterStaffView {
             System.out.print("Enter current password: ");
             current = sc.nextLine().trim();
             if (current.isEmpty()) {
-                System.out.println("✗ Current password cannot be empty.\n");
-                continue;
+                ConsoleUI.sectionHeader("Career Center Staff View");
+                return;
             }
             break;
         }

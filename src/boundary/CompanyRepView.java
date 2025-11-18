@@ -115,11 +115,11 @@ public class CompanyRepView {
 
         String current;
         while (true) {
-            System.out.print("Enter current password: ");
+            System.out.print("Enter current password (leave blank to cancel): ");
             current = sc.nextLine().trim();
             if (current.isEmpty()) {
-                System.out.println("✗ Current password cannot be empty.\n");
-                continue;
+                ConsoleUI.sectionHeader("Company Representative View");
+                return;
             }
             break;
         }

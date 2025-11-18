@@ -145,11 +145,11 @@ public class StudentView {
 
         String current;
         while (true) {
-            System.out.print("Enter current password: ");
+            System.out.print("Enter current password (leave blank to cancel): ");
             current = sc.nextLine().trim();
             if (current.isEmpty()) {
-                System.out.println("✗ Current password cannot be empty.\n");
-                continue;
+                ConsoleUI.sectionHeader("Student View");
+                return;
             }
             break;
         }
@@ -163,7 +163,7 @@ public class StudentView {
                 continue;
             }
             if (newPwd.equals(current)) {
-                System.out.println("✗ New password cannot be the same as your current password.");
+                System.out.println("✗ New password cannot be the same as your current password.\n");
                 continue;
             }
             break;
