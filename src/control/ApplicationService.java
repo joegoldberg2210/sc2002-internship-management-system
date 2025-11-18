@@ -19,11 +19,13 @@ public class ApplicationService {
     private final List<Application> applications;
     private final DataLoader loader;
     private final List<WithdrawalRequest> withdrawalRequests;
+    private List<InternshipOpportunity> opportunities;
 
     public ApplicationService(List<Application> applications, DataLoader loader) {
         this.applications = Objects.requireNonNull(applications);
         this.loader = Objects.requireNonNull(loader);
         this.withdrawalRequests = new ArrayList<>(loader.loadWithdrawalRequests());
+        this.opportunities = loader.loadOpportunities();
     }
 
     /** 
@@ -92,6 +94,7 @@ public class ApplicationService {
     private void save() {
         loader.saveApplications(applications);
         loader.saveWithdrawalRequests(withdrawalRequests);
+        loader.saveOpportunities(opportunities);
     }
 
     /** 
