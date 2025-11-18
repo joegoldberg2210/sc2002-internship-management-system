@@ -17,7 +17,7 @@ import enumerations.OpportunityStatus;
 public class OpportunityService {
 
     private final List<InternshipOpportunity> opportunities;
-    private final DataLoader loader; // for persistence
+    private final DataLoader loader; 
 
     public OpportunityService(List<InternshipOpportunity> opportunities, DataLoader loader) {
         this.opportunities = Objects.requireNonNull(opportunities, "Opportunities must not be null");

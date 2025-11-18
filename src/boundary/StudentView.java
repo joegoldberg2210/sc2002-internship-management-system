@@ -441,6 +441,19 @@ public class StudentView {
 
         List<Application> myApps = applicationService.getApplicationsForStudent(student);
 
+         // debug: show raw statuses for this student
+        System.out.println("[debug] applications for student " + student.getId() + ":");
+        for (Application app : myApps) {
+            System.out.printf(
+                "[debug] app %s | opp=%s | status=%s | accepted=%s%n",
+                app.getId(),
+                app.getOpportunity().getId(),
+                app.getStatus(),
+                app.isAccepted()
+            );
+        }
+        System.out.println();
+
         if (myApps.isEmpty()) {
             System.out.println("✗ No internship applications found.\n");
             System.out.print("Press enter to return... ");
