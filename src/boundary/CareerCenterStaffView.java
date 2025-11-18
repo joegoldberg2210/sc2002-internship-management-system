@@ -797,12 +797,12 @@ public class CareerCenterStaffView {
      */
     private void printAllOpportunitiesTable(List<InternshipOpportunity> list) {
         System.out.printf(
-                "%-4s %-15s %-25s %-20s %-20s %-20s %-20s %-12s %-16s %-16s%n",
+                "%-4s %-15s %-25s %-20s %-20s %-20s %-20s %-12s %-16s %-16s %-16s%n",
                 "S/N", "Opportunity ID", "Internship Title", "Preferred Major",
                 "Internship Level", "Number of Slots", "Company",
-                "Open Date", "Closing Date", "Status"
+                "Open Date", "Closing Date", "Status", "Visibility"
         );
-        System.out.println("--------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
+        System.out.println("-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
 
         if (list.isEmpty()) {
             System.out.println("✗ No internship opportunities match your current filters.\n");
@@ -813,7 +813,7 @@ public class CareerCenterStaffView {
         for (InternshipOpportunity o : list) {
             String slotsStr = String.format("%d/%d", o.getConfirmedSlots(), o.getSlots());
             System.out.printf(
-                    "%-4d %-15s %-25s %-20s %-20s %-20s %-20s %-12s %-16s %-16s%n",
+                    "%-4d %-15s %-25s %-20s %-20s %-20s %-20s %-12s %-16s %-16s %-16s%n",
                     i++,
                     o.getId(),
                     o.getTitle(),
@@ -823,7 +823,8 @@ public class CareerCenterStaffView {
                     o.getCompanyName(),
                     String.valueOf(o.getOpenDate()),
                     String.valueOf(o.getCloseDate()),
-                    o.getStatus()
+                    o.getStatus(),
+                    o.isVisible() ? "ON" : "OFF"
             );
         }
 
