@@ -49,7 +49,7 @@ public class InternshipOpportunity implements Serializable {
         if (status != OpportunityStatus.APPROVED) return false;  
         if (!visibility) return false;                           
         var today = java.time.LocalDate.now();
-        if (today.isBefore(openDate) || today.isEqual(openDate) || today.isAfter(closeDate)) return false;
+        if (today.isBefore(openDate) || today.isAfter(closeDate)) return false;
         if (!hasVacancy()) return false;                        
         return isEligibleFor(s);                              
     }

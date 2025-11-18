@@ -196,8 +196,11 @@ public class StudentView {
         ConsoleUI.sectionHeader("Student View > View Available Internships");
 
         while (true) {
-            List<InternshipOpportunity> available =
-                    opportunityService.findBy(student, availableFilter);
+             List<InternshipOpportunity> available = opportunityService.getAllOpportunities().stream()
+                .filter(o -> o.getStatus() != OpportunityStatus.REJECTED && o.getStatus() != OpportunityStatus.PENDING)
+                .filter(InternshipOpportunity::isVisible)
+                .filter(o -> o.isEligibleFor(student))
+                .collect(Collectors.toList());
 
             Comparator<InternshipOpportunity> cmp;
             if ("company".equalsIgnoreCase(availableSortKey)) {
@@ -731,7 +734,8 @@ public class StudentView {
         ConsoleUI.sectionHeader("Student View > Apply For Internships");
 
         List<InternshipOpportunity> available = opportunityService.getAllOpportunities().stream()
-                .filter(o -> o.getStatus() != OpportunityStatus.REJECTED)
+                .filter(o -> o.getStatus() != OpportunityStatus.REJECTED && o.getStatus() != OpportunityStatus.PENDING)
+                .filter(InternshipOpportunity::isVisible)
                 .filter(o -> o.isEligibleFor(student))
                 .collect(Collectors.toList());
 
@@ -748,7 +752,7 @@ public class StudentView {
                 "%-4s %-15s %-25s %-20s %-15s %-15s %-15s %-12s %-12s%n",
                 "S/N", "Opportunity ID", "Internship Title", "Internship Level",
                 "Company", "Preferred Major", "Number of Slots", "Open Date", "Close Date");
-        System.out.println("----------------------------------------------------------------------------------------------------------------------------------------------------------------------");
+        System.out.println("--------------------------------------------------------------------------------------------------------------------------------------------");
 
         int i = 1;
         for (InternshipOpportunity o : available) {
