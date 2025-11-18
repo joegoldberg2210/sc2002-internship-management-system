@@ -1,6 +1,8 @@
 package entity;
 
 import enumerations.ApplicationStatus;
+import enumerations.OpportunityStatus;
+
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.Objects;
@@ -38,6 +40,13 @@ public class Application implements Serializable {
         if (this.status != ApplicationStatus.SUCCESSFUL)
             throw new IllegalStateException("cannot accept unless status is SUCCESSFUL.");
         this.accepted = true;
+
+        InternshipOpportunity opp = this.getOpportunity();
+        opp.incrementConfirmedSlots();
+
+        if (opp.getConfirmedSlots() >= opp.getSlots()) {
+            opp.setStatus(OpportunityStatus.FILLED);
+        }
     }
 
     public void markWithdrawn() {

@@ -172,15 +172,8 @@ public class ApplicationService {
         }
 
         app.markAccepted();
-        opp.incrementConfirmedSlots();
 
         withdrawOtherOffers(student, app);
-
-
-        if (opp.getConfirmedSlots() >= opp.getSlots()) {
-            opp.setStatus(OpportunityStatus.FILLED);
-            opp.setVisibility(false);
-        }
 
         System.out.println();
         System.out.println("✓ Offer accepted. All other active applications withdrawn automatically.");
@@ -342,5 +335,13 @@ public class ApplicationService {
      */
     public List<WithdrawalRequest> getAllWithdrawalRequests() {
         return new ArrayList<>(withdrawalRequests);
+    }
+
+    public List<Application> getApplicationsByStudent(Student student) {
+        if (student == null) return Collections.emptyList();
+        
+        return applications.stream()
+                .filter(app -> app.getStudent().equals(student))
+                .collect(Collectors.toList());
     }
 }

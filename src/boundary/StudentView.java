@@ -201,6 +201,18 @@ public class StudentView {
                 .filter(InternshipOpportunity::isVisible)
                 .filter(o -> o.isEligibleFor(student))
                 .collect(Collectors.toList());
+    
+            Application acceptedApp = applicationService.getApplicationsByStudent(student).stream()
+                    .filter(Application::isAccepted)
+                    .findFirst()
+                    .orElse(null);
+
+            if (acceptedApp != null) {
+                InternshipOpportunity acceptedOpp = acceptedApp.getOpportunity();
+                if (!available.contains(acceptedOpp)) {
+                    available.add(acceptedOpp);
+                }
+            }
 
             Comparator<InternshipOpportunity> cmp;
             if ("company".equalsIgnoreCase(availableSortKey)) {
@@ -738,6 +750,18 @@ public class StudentView {
                 .filter(InternshipOpportunity::isVisible)
                 .filter(o -> o.isEligibleFor(student))
                 .collect(Collectors.toList());
+        
+        Application acceptedApp = applicationService.getApplicationsByStudent(student).stream()
+            .filter(Application::isAccepted)
+            .findFirst()
+            .orElse(null);
+        
+        if (acceptedApp != null) {
+            InternshipOpportunity acceptedOpp = acceptedApp.getOpportunity();
+            if (!available.contains(acceptedOpp)) {
+                available.add(acceptedOpp);
+            }
+        }
 
         if (available.isEmpty()) {
             System.out.println("✗ No internship opportunities available for you.\n");

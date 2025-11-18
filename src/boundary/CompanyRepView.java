@@ -296,7 +296,7 @@ public class CompanyRepView {
         
         long activeCount = opportunityService.getByCompany(rep.getCompanyName()).size();
         if (activeCount >= 5) {
-            System.out.println("✗ You are unable to create new internship opportunity as you already have 5 active opportunities.\n");
+            System.out.println("✗ You are unable to create new internship opportunity as you already have 5 opportunities.\n");
             System.out.print("Press enter key to continue... ");
             sc.nextLine(); 
             ConsoleUI.sectionHeader("Company Representative View");
@@ -1039,7 +1039,7 @@ public class CompanyRepView {
         }
 
         System.out.printf(
-            "%-4s %-15s %-15s %-15s %-20s %-20s %-20s %-20 %-12s%n",
+            "%-4s %-15s %-15s %-15s %-20s %-20s %-20s %-20s %-12s%n",
             "S/N", "Application ID", "Student ID", "Opportunity ID",
             "Internship Title", "Internship Level", "Company",
             "Status", "Applied At"
