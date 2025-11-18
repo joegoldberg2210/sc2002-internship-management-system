@@ -1,6 +1,7 @@
 package boundary;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Scanner;
@@ -166,8 +167,8 @@ public class CompanyRepView {
         ConsoleUI.sectionHeader("Company Representative View > Manage Internship Opportunities");
         System.out.println("(1) Create New Internship Opportunity");
         System.out.println("(2) View My Internship Opportunities");
-        System.out.println("(3) Edit Existing Internship Opportunity");
-        System.out.println("(4) Delete Opportunity");
+        System.out.println("(3) Edit Pending Internship Opportunity");
+        System.out.println("(4) Delete Pending Internship Opportunity");
         System.out.println("(5) Toggle Visibility");
         System.out.println("(0) Back to Company Representative View");
         System.out.println();
@@ -329,9 +330,8 @@ public class CompanyRepView {
         InternshipLevel level = selectLevel();
 
         int slots = 0;
-
         while (true) {
-            System.out.print("Enter number of slots (1-10): ");
+            System.out.print("Enter Number of Slots (1-10): ");
             String input = sc.nextLine().trim();
 
             try {
@@ -346,14 +346,47 @@ public class CompanyRepView {
             }
         }
 
+        LocalDate openDate;
+        LocalDate closeDate;
+
+        while (true) {
+            System.out.print("Enter Open Date (yyyy-mm-dd): ");
+            String openInput = sc.nextLine().trim();
+            try {
+                openDate = LocalDate.parse(openInput);
+                if (!openDate.isBefore(LocalDate.now())) {
+                    break;
+                } else {
+                    System.out.println("✗ Open date cannot be before current date.");
+                }
+            } catch (DateTimeParseException e) {
+                System.out.println("✗ Invalid date format. Please use yyyy-mm-dd.");
+            }
+        }
+
+        while (true) {
+            System.out.print("Enter Close Date (yyyy-mm-dd): ");
+            String endInput = sc.nextLine().trim();
+            try {
+                closeDate = LocalDate.parse(endInput);
+                if (closeDate.isAfter(openDate)) {
+                    break;
+                } else {
+                    System.out.println("✗ Close date must be after open date.");
+                }
+            } catch (DateTimeParseException e) {
+                System.out.println("✗ Invalid date format. Please use yyyy-mm-dd.");
+            }
+        }
+
         InternshipOpportunity opp = new InternshipOpportunity(
             UUID.randomUUID().toString().substring(0, 6),
             title,
             description,
             level,
             preferredMajor,                         
-            LocalDate.now(),
-            LocalDate.now().plusMonths(3),
+            openDate,
+            closeDate,
             rep.getCompanyName(),
             slots,
             rep
@@ -361,6 +394,7 @@ public class CompanyRepView {
 
         opportunityService.createOpportunity(rep, opp);
 
+        System.out.println("✓ Internship opportunity created successfully!");
         ConsoleUI.sectionHeader("Company Representative View");
     }
 
@@ -460,26 +494,52 @@ public class CompanyRepView {
                         existing.setPreferredMajor(m);
                     }
                     case "5" -> {
-                        System.out.print("Enter new number of slots: ");
+                        System.out.print("Enter new number of slots (0-10): ");
                         try {
-                            existing.setSlots(Integer.parseInt(sc.nextLine().trim()));
+                            int newSlots = Integer.parseInt(sc.nextLine().trim());
+                            if (newSlots >= 0 && newSlots <= 10) {
+                                existing.setSlots(newSlots);
+                                System.out.println("✓ Slots updated.");
+                            } else {
+                                System.out.println("✗ Number of slots must be between 0 and 10. Slots not changed.");
+                            }
                         } catch (NumberFormatException e) {
-                            System.out.println("✗ Invalid number. Number of slots not changed.");
+                            System.out.println("✗ Invalid number. Please enter a valid integer. Slots not changed.");
                         }
                     }
                     case "6" -> {
                         System.out.print("Enter new Open Date (YYYY-MM-DD): ");
+                        String input = sc.nextLine().trim();
                         try {
-                            existing.setOpenDate(LocalDate.parse(sc.nextLine().trim()));
-                        } catch (Exception e) {
+                            LocalDate newOpen = LocalDate.parse(input);
+
+                            if (newOpen.isBefore(LocalDate.now())) {
+                                System.out.println("✗ Open date cannot be in the past. Open date not changed.");
+                            } else if (!newOpen.isBefore(existing.getCloseDate())) {
+                                System.out.println("✗ Open date must be before the current close date (" 
+                                        + existing.getCloseDate() + "). Open date not changed.");
+                            } else {
+                                existing.setOpenDate(newOpen);
+                                System.out.println("✓ Open date updated.");
+                            }
+                        } catch (DateTimeParseException e) {
                             System.out.println("✗ Invalid date format. Open date not changed.");
                         }
                     }
                     case "7" -> {
                         System.out.print("Enter new Close Date (YYYY-MM-DD): ");
+                        String input = sc.nextLine().trim();
                         try {
-                            existing.setCloseDate(LocalDate.parse(sc.nextLine().trim()));
-                        } catch (Exception e) {
+                            LocalDate newClose = LocalDate.parse(input);
+
+                            if (!newClose.isAfter(existing.getOpenDate())) {
+                                System.out.println("✗ Close date must be after the current open date (" 
+                                        + existing.getOpenDate() + "). Close date not changed.");
+                            } else {
+                                existing.setCloseDate(newClose);
+                                System.out.println("✓ Close date updated.");
+                            }
+                        } catch (DateTimeParseException e) {
                             System.out.println("✗ Invalid date format. Close date not changed.");
                         }
                     }
@@ -936,17 +996,17 @@ public class CompanyRepView {
         }
 
         System.out.printf(
-            "%-4s %-15s %-25s %-20s %-20s %-20s %-15s %-15s %-15s %-10s %-15s%n",
+            "%-4s %-15s %-25s %-20s %-20s %-20s %-20s %-15s %-15s %-10s %-15s%n",
             "S/N", "Opportunity ID", "Internship Title", "Level", "Company",
             "Preferred Major", "Number of Slots", "Open Date", "Close Date", "Status", "Visibility"
         );
-        System.out.println("------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
+        System.out.println("------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
 
         int i = 1;
         for (InternshipOpportunity o : myOpps) {
             String slotsStr = String.format("%d/%d", o.getConfirmedSlots(), o.getSlots());
             System.out.printf(
-                "%-4d %-15s %-25s %-20s %-20s %-20s %-15s %-15s %-15s %-10s %-15s%n",
+                "%-4d %-15s %-25s %-20s %-20s %-20s %-20s %-15s %-15s %-10s %-15s%n",
                 i++,
                 o.getId(),
                 o.getTitle(),
