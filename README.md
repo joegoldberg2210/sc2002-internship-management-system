@@ -32,8 +32,7 @@ SC2002 Object Oriented Design & Programming SCMC Group 2:
 │   └── ui/                             # UI classes
 ├── .gitignore
 ├── IPMSApp.java                        # IPMS Application
-├── README.md
-└── sc2002-internship-management-system2.iml
+└── README.md
 ```
 
 ## Login Credentials
@@ -74,7 +73,7 @@ kgj129
 password1
 
 
-How to Run
+## How to Run
 1. Clone the repository.
 2. Import the project into an IDE that supports Java (e.g., IntelliJ IDEA, Eclipse).
 3. Build the project and run IPMSApp.java as the main application.
