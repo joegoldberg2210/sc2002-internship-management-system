@@ -37,39 +37,34 @@ SC2002 Object Oriented Design & Programming SCMC Group 2:
 This section contains some login credentials for users with different roles.
 The full list is available in the `data` folder.
 
+### Company Representitive:
+
+1x companyrep with 3 approved, 1 pending
+chanyingjie025@byteworks.com
+password1
+
+2x companyrep with 5 CSC internships
+lowzhixin065@summittech.com
+yapxuanmin057@cedaranalytics.com
+password1
+password1
+
+2x companyrep with pending request for account creation
+Low Zhi Xi
+Koh Wen Jie
+
+
 ### Students:
-```
-# student 1  
-id: U2310001A  
-password: password
 
-# student 2  
-id: U2310001B  
-password: password
+1x CSC year 1 student 
+U9267518V
+password1
 
-# student 3  
-id: U2310001C  
-password: password
+1x CSC year 3 student 
+U2942043T
+password1
 
-# student 4  
-id: U2310001D  
-password: password
-
-# student 5  
-id: U2310001E 
-password: password 
-```
 
 ### Career Center Staff:
-```
-# career center staff 1
-id: sng001  
-password: password
-
-# career center staff 2  
-id: tan002  
-password: password
-
-# career center staff 3  
-id: lee003  
-password: password 
+kgj129
+password1
