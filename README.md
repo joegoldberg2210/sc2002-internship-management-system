@@ -72,3 +72,10 @@ password1
 ### Career Center Staff:
 kgj129
 password1
+
+
+How to Run
+1. Clone the repository.
+2. Import the project into an IDE that supports Java (e.g., IntelliJ IDEA, Eclipse).
+3. Build the project and run IPMSApp.java as the main application.
+4. Use the provided login credentials to access the system functionalities.
