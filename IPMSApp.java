@@ -15,6 +15,7 @@ import entity.Student;
 import entity.CompanyRepresentative;
 import entity.CareerCenterStaff;
 import entity.User;
+import entity.WithdrawalRequest;
 import entity.Application;
 
 public class IPMSApp {
@@ -25,9 +26,10 @@ public class IPMSApp {
 
         List<InternshipOpportunity> opportunities = loader.loadOpportunities();
         List<Application> applications = loader.loadApplications();
+        List<WithdrawalRequest> withdrawals = loader.loadWithdrawalRequests();
 
         OpportunityService oppService = new OpportunityService(opportunities, loader);
-        ApplicationService appService = new ApplicationService(applications, loader);
+        ApplicationService appService = new ApplicationService(applications, opportunities, withdrawals, loader);
 
         if (users.isEmpty()) {
             System.out.println("no users loaded. please check your serialized/users.ser file.");
@@ -63,6 +65,7 @@ public class IPMSApp {
                 loader.saveUsers(users);           
                 loader.saveOpportunities(opportunities); 
                 loader.saveApplications(applications);   
+                loader.saveWithdrawalRequests(withdrawals);
             }
         }
     }

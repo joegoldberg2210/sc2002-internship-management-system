@@ -21,11 +21,11 @@ public class ApplicationService {
     private final List<WithdrawalRequest> withdrawalRequests;
     private List<InternshipOpportunity> opportunities;
 
-    public ApplicationService(List<Application> applications, DataLoader loader) {
+    public ApplicationService(List<Application> applications, List<InternshipOpportunity> opportunities, List<WithdrawalRequest> withdrawalRequests, DataLoader loader) {
         this.applications = Objects.requireNonNull(applications);
         this.loader = Objects.requireNonNull(loader);
-        this.withdrawalRequests = new ArrayList<>(loader.loadWithdrawalRequests());
-        this.opportunities = loader.loadOpportunities();
+        this.withdrawalRequests = Objects.requireNonNull(withdrawalRequests);
+        this.opportunities = Objects.requireNonNull(opportunities);
     }
 
     /** 
@@ -129,11 +129,6 @@ public class ApplicationService {
     public void decideApplication(CompanyRepresentative rep, Application app, boolean approve) {
         InternshipOpportunity opp = app.getOpportunity();
 
-        if (!rep.equals(opp.getRepInCharge())) {
-            System.out.println("✗ you may only review applications for your own opportunities.");
-            return;
-        }
-
         if (approve) {
             if (opp.getConfirmedSlots() >= opp.getSlots()) {
                 System.out.println("✗ No more slots available. Application is automatically rejected.");
@@ -145,8 +140,8 @@ public class ApplicationService {
         app.markDecision(approve);
 
         System.out.println(approve
-                ? "✓ application marked as successful (offer made)."
-                : "✓ application marked as unsuccessful.");
+                ? "✓ Application marked as successful."
+                : "✓ Application marked as unsuccessful.");
         save();
     }
 
@@ -167,7 +162,9 @@ public class ApplicationService {
             return;
         }
 
-        InternshipOpportunity opp = app.getOpportunity();
+        String oppId = app.getOpportunity().getId();
+        InternshipOpportunity opp = findMasterOpportunity(oppId);
+
 
         if (opp.getConfirmedSlots() >= opp.getSlots()) {
             System.out.println("✗ No remaining slots available for this opportunity.");
@@ -175,12 +172,18 @@ public class ApplicationService {
         }
 
         app.markAccepted();
+        opp.incrementConfirmedSlots();
+
+        if (opp.getConfirmedSlots() >= opp.getSlots()) {
+            opp.setStatus(OpportunityStatus.FILLED);
+        }
 
         withdrawOtherOffers(student, app);
 
+        save();
+
         System.out.println();
         System.out.println("✓ Offer accepted. All other active applications withdrawn automatically.");
-        save();
     }
 
     /** 
@@ -204,19 +207,9 @@ public class ApplicationService {
      */
     public void rejectOffer(Student student, Application app) {
 
-        if (app.getStatus() != ApplicationStatus.SUCCESSFUL) {
-            System.out.println("✗ cannot reject — this application is not a valid offer.");
-            return;
-        }
-
-        if (app.isAccepted()) {
-            System.out.println("✗ cannot reject — you have already accepted this offer.");
-            return;
-        }
-
         app.markWithdrawn();
 
-        System.out.println("✓ offer rejected successfully.");
+        System.out.println("✓ Offer rejected successfully.");
         save();
     }
 
@@ -241,12 +234,12 @@ public class ApplicationService {
 
         if (application.getStatus() != ApplicationStatus.PENDING
                 && application.getStatus() != ApplicationStatus.SUCCESSFUL) {
-            System.out.println("✗ you can only request withdrawal for active applications.");
+            System.out.println("✗ You can only request withdrawal for active applications.");
             return false;
         }
 
         if (hasPendingWithdrawal(application)) {
-            System.out.println("✗ a pending withdrawal request already exists for this application.");
+            System.out.println("✗ A pending withdrawal request already exists for this application.");
             return false;
         }
 
@@ -256,7 +249,7 @@ public class ApplicationService {
 
         save();
 
-        System.out.println("✓ withdrawal request submitted successfully (pending approval by career center staff).");
+        System.out.println("✓ Withdrawal request submitted successfully (pending approval by career center staff).");
         return true;
     }
 
@@ -276,23 +269,44 @@ public class ApplicationService {
      */
     public void reviewWithdrawalRequest(CareerCenterStaff staff, WithdrawalRequest req, boolean approve) {
         if (req == null) return;
+        
+        Application reqApp = req.getApplication();
+
+        Application app = findMasterApplication(reqApp);
+
+        String oppId = app.getOpportunity().getId();
+        InternshipOpportunity opp = findMasterOpportunity(oppId);
+
+        System.out.printf(
+            app.getId(), app.getStatus(), app.isAccepted(),
+            opp != null ? opp.getId() : "null",
+            opp != null ? opp.getConfirmedSlots() : -1,
+            opp != null ? opp.getSlots() : -1
+        );
 
         req.review(staff, approve);
 
-        Application app = req.getApplication();
-        InternshipOpportunity opp = app.getOpportunity();
-
         if (approve) {
-            if (app.getStatus() == ApplicationStatus.SUCCESSFUL && app.isAccepted()) {
-                opp.decrementConfirmedSlots(); 
 
-                if (opp.getStatus() == OpportunityStatus.FILLED && opp.hasVacancy()) {
-                    opp.setStatus(OpportunityStatus.APPROVED);
-                    opp.setVisibility(true);
-                }
+            if (app.getStatus() == ApplicationStatus.SUCCESSFUL && app.isAccepted()) {
+                if (opp != null) {
+                    opp.decrementConfirmedSlots();
+
+                    if (opp.getStatus() == OpportunityStatus.FILLED && opp.hasVacancy()) {
+                        opp.setStatus(OpportunityStatus.APPROVED);
+                    }
+                } 
             }
 
             app.markWithdrawn();
+
+
+            System.out.printf(
+                app.getId(), app.getStatus(), app.isAccepted(),
+                opp != null ? opp.getId() : "null",
+                opp != null ? opp.getConfirmedSlots() : -1,
+                opp != null ? opp.getSlots() : -1
+            );
 
             System.out.println("✓ Withdrawal request approved. Application withdrawn successfully.");
         } else {
@@ -346,5 +360,21 @@ public class ApplicationService {
         return applications.stream()
                 .filter(app -> app.getStudent().equals(student))
                 .collect(Collectors.toList());
+    }
+
+    private InternshipOpportunity findMasterOpportunity(String oppId) {
+        if (oppId == null) return null;
+        return opportunities.stream()
+                .filter(o -> o.getId().equalsIgnoreCase(oppId))
+                .findFirst()
+                .orElse(null);
+    }
+
+    private Application findMasterApplication(Application app) {
+        if (app == null) return null;
+        return applications.stream()
+                .filter(a -> a.getId().equals(app.getId()))
+                .findFirst()
+                .orElse(app);
     }
 }
