@@ -40,7 +40,7 @@ SC2002 Object Oriented Design & Programming SCMC Group 2:
 This section contains some login credentials for users with different roles.
 The full list is available in the `data` folder.
 
-### Company Representitive:
+### Company Representative:
 
 1x companyrep with 3 approved, 1 pending
 chanyingjie025@byteworks.com
